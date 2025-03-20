@@ -17,4 +17,4 @@ All necessary internal team processes are handled in this module. Core functions
 
 ## Permissions
 
-This module has an integrated authorization system. A list and explanation of the various permissions can be found [here](https://git.dulno.com/dulno/dulno-team/-/blob/master/PERMISSIONS.md).
+This module has an integrated authorization system. A list and explanation of the various permissions can be found [here](https://git.dulno.com/dulno/dulno-team/-/blob/main/PERMISSIONS.md).

@@ -2,7 +2,6 @@ package com.dulno.team;
 
 import com.dulno.core.command.CommandRegistry;
 import com.dulno.core.command.CommandTask;
-import com.dulno.core.command.implementation.ClearCommand;
 import com.dulno.core.database.DatabaseConnection;
 import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.intro.Intro;
@@ -56,7 +55,6 @@ public class TeamApplication {
   private static void registerCommands(
     CommandRegistry registry, Injector injector
   ) {
-    registry.register(injector.getInstance(ClearCommand.class));
     registry.register(injector.getInstance(TeamCommand.class));
     registry.register(injector.getInstance(GroupCommand.class));
     registry.register(injector.getInstance(PermissionCommand.class));

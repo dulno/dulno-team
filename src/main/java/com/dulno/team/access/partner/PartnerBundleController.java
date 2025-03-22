@@ -1,11 +1,11 @@
-package com.dulno.team.access.entity;
+package com.dulno.team.access.partner;
 
 import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.core.bundle.*;
 import com.dulno.core.stripe.TerminationDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,38 +21,38 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public final class EntityBundleController extends TeamController {
+public final class PartnerBundleController extends TeamController {
   private final BundleDatabaseTable bundleDatabaseTable;
   private final BundlePresetRepository bundlePresetRepository;
   private final TerminationDatabaseTable terminationDatabaseTable;
 
-  private EntityBundleController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+  private PartnerBundleController(
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     BundleDatabaseTable bundleDatabaseTable,
     BundlePresetRepository bundlePresetRepository,
     TerminationDatabaseTable terminationDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.bundleDatabaseTable = bundleDatabaseTable;
     this.bundlePresetRepository = bundlePresetRepository;
     this.terminationDatabaseTable = terminationDatabaseTable;
   }
 
-  @RequestMapping(path = "/entity/bundle/find/", method = RequestMethod.POST)
-  public CompletableFuture<Map<String, Object>> findEntityBundle(
+  @RequestMapping(path = "/partner/bundle/find/", method = RequestMethod.POST)
+  public CompletableFuture<Map<String, Object>> findPartnerBundle(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var entityId = body.getUUID("entity");
-    return memberHasPermission(findMemberId(request), "entity.bundle.find")
-      .thenCompose(hasPermission -> bundleDatabaseTable.bundleExists(entityId)
-        .thenCompose(exists -> findEntityBundle(entityId, hasPermission, exists)));
+    var partnerId = body.getUUID("partner");
+    return staffHasPermission(findStaffId(request), "partner.bundle.find")
+      .thenCompose(hasPermission -> bundleDatabaseTable.bundleExists(partnerId)
+        .thenCompose(exists -> findPartnerBundle(partnerId, hasPermission, exists)));
   }
 
-  private CompletableFuture<Map<String, Object>> findEntityBundle(
-    UUID entityId, boolean hasPermission, boolean bundleExists
+  private CompletableFuture<Map<String, Object>> findPartnerBundle(
+    UUID partnerId, boolean hasPermission, boolean bundleExists
   ) {
     if (!hasPermission) {
       return CompletableFuture.completedFuture(Maps.newHashMap());
@@ -60,7 +60,7 @@ public final class EntityBundleController extends TeamController {
     if (!bundleExists) {
       return CompletableFuture.completedFuture(Map.of("found", false));
     }
-    return bundleDatabaseTable.findBundle(entityId)
+    return bundleDatabaseTable.findBundle(partnerId)
       .thenApply(this::assemblyBundleInformation);
   }
 
@@ -93,20 +93,20 @@ public final class EntityBundleController extends TeamController {
     return information;
   }
 
-  @RequestMapping(path = "/entity/bundle/change/", method = RequestMethod.POST)
-  public void changeEntityBundle(
+  @RequestMapping(path = "/partner/bundle/change/", method = RequestMethod.POST)
+  public void changePartnerBundle(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var entityId = body.getUUID("entity");
-    memberHasPermission(findMemberId(request), "entity.bundle.change")
-      .thenAccept(hasPermission -> changeEntityBundle(entityId, body,
+    var partnerId = body.getUUID("partner");
+    staffHasPermission(findStaffId(request), "partner.bundle.change")
+      .thenAccept(hasPermission -> changePartnerBundle(partnerId, body,
         hasPermission));
   }
 
-  private void changeEntityBundle(
-    UUID entityId, DulnoRequestBody body, boolean hasPermission
+  private void changePartnerBundle(
+    UUID partnerId, DulnoRequestBody body, boolean hasPermission
   ) {
     if (!hasPermission) {
       return;
@@ -127,12 +127,12 @@ public final class EntityBundleController extends TeamController {
       findBundleOrganizationMemberLimit(body, preset) : 0;
     var organizationTeamLimit = isOrganization ?
       findBundleOrganizationTeamLimit(body, preset) : 0;
-    bundleDatabaseTable.deleteBundle(entityId).thenAccept(value ->
-      bundleDatabaseTable.insertBundle(Bundle.of(entityId,
+    bundleDatabaseTable.deleteBundle(partnerId).thenAccept(value ->
+      bundleDatabaseTable.insertBundle(Bundle.of(partnerId,
         preset, runtime, expiration, price, workflowNumberLimit,
         workflowOperationLimit, processNumberLimit, databaseNumberLimit,
         databaseDataLimit, organizationMemberLimit, organizationTeamLimit)));
-    terminationDatabaseTable.deleteTermination(entityId);
+    terminationDatabaseTable.deleteTermination(partnerId);
   }
 
   private double findBundlePrice(
@@ -221,24 +221,24 @@ public final class EntityBundleController extends TeamController {
     return bundlePresetRepository.findPreset(bundleType, bundleClass).get();
   }
 
-  @RequestMapping(path = "/entity/bundle/delete/", method = RequestMethod.POST)
-  public void deleteEntityBundle(
+  @RequestMapping(path = "/partner/bundle/delete/", method = RequestMethod.POST)
+  public void deletePartnerBundle(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var entityId = body.getUUID("entity");
-    memberHasPermission(findMemberId(request), "entity.bundle.delete")
-      .thenAccept(hasPermission -> bundleDatabaseTable.bundleExists(entityId)
-        .thenAccept(exists -> deleteEntityBundle(entityId, hasPermission, exists)));
+    var partnerId = body.getUUID("partner");
+    staffHasPermission(findStaffId(request), "partner.bundle.delete")
+      .thenAccept(hasPermission -> bundleDatabaseTable.bundleExists(partnerId)
+        .thenAccept(exists -> deletePartnerBundle(partnerId, hasPermission, exists)));
   }
 
-  private void deleteEntityBundle(
-    UUID entityId, boolean hasPermission, boolean bundleExists
+  private void deletePartnerBundle(
+    UUID partnerId, boolean hasPermission, boolean bundleExists
   ) {
     if (!hasPermission || !bundleExists) {
       return;
     }
-    bundleDatabaseTable.deleteBundle(entityId);
+    bundleDatabaseTable.deleteBundle(partnerId);
   }
 }

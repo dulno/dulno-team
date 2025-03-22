@@ -9,7 +9,7 @@ import com.dulno.core.locale.Translation;
 import com.dulno.core.log.Log;
 import com.dulno.core.mail.Mail;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -29,7 +29,7 @@ public class TeamContextInitializer implements ApplicationContextInitializer<Con
   private final Key refreshKey;
   private final DatabaseConnection databaseConnection;
   private final DatabaseKeyspace databaseKeyspace;
-  private final TeamDatabaseTable teamDatabaseTable;
+  private final StaffDatabaseTable staffDatabaseTable;
   private final GroupDatabaseTable groupDatabaseTable;
   private final Translation translation;
   private final ErrorRepository errorRepository;
@@ -44,7 +44,7 @@ public class TeamContextInitializer implements ApplicationContextInitializer<Con
   private TeamContextInitializer(
     Log log, @Named("panelKey") Key panelKey, @Named("panelRefreshKey") Key refreshKey,
     DatabaseConnection databaseConnection, DatabaseKeyspace databaseKeyspace,
-    TeamDatabaseTable teamDatabaseTable, GroupDatabaseTable groupDatabaseTable,
+    StaffDatabaseTable staffDatabaseTable, GroupDatabaseTable groupDatabaseTable,
     Translation translation, ErrorRepository errorRepository,
     @Named("verificationMail") Mail verificationMail,
     @Named("supportMail") Mail supportMail, @Named("saleMail") Mail saleMail,
@@ -56,7 +56,7 @@ public class TeamContextInitializer implements ApplicationContextInitializer<Con
     this.refreshKey = refreshKey;
     this.databaseConnection = databaseConnection;
     this.databaseKeyspace = databaseKeyspace;
-    this.teamDatabaseTable = teamDatabaseTable;
+    this.staffDatabaseTable = staffDatabaseTable;
     this.groupDatabaseTable = groupDatabaseTable;
     this.translation = translation;
     this.errorRepository = errorRepository;
@@ -74,7 +74,7 @@ public class TeamContextInitializer implements ApplicationContextInitializer<Con
     beanFactory.registerSingleton("log", log);
     beanFactory.registerSingleton("databaseConnection", databaseConnection);
     beanFactory.registerSingleton("databaseKeyspace", databaseKeyspace);
-    beanFactory.registerSingleton("teamDatabaseTable", teamDatabaseTable);
+    beanFactory.registerSingleton("teamDatabaseTable", staffDatabaseTable);
     beanFactory.registerSingleton("groupDatabaseTable", groupDatabaseTable);
     beanFactory.registerSingleton("translation", translation);
     beanFactory.registerSingleton("errorRepository", errorRepository);

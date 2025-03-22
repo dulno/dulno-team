@@ -1,4 +1,4 @@
-package com.dulno.team.member;
+package com.dulno.team.staff;
 
 import com.dulno.core.database.DatabaseRow;
 import lombok.AllArgsConstructor;
@@ -10,8 +10,8 @@ import java.util.UUID;
 
 @Accessors(fluent = true)
 @AllArgsConstructor(staticName = "create")
-public final class TeamMember {
-  public static TeamMember of(DatabaseRow row) {
+public final class Staff {
+  public static Staff of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
       row.findCell(2).stringValue(), row.findCell(3).stringValue(),
       row.findCell(4).stringValue(), row.findCell(5).stringValue(),

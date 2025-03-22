@@ -3,24 +3,24 @@ package com.dulno.team.command;
 import com.dulno.core.command.Command;
 import com.dulno.core.log.Log;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.inject.Inject;
 
 import java.util.UUID;
 
 public final class PermissionCommand extends Command {
-  private final TeamDatabaseTable teamDatabaseTable;
+  private final StaffDatabaseTable staffDatabaseTable;
   private final GroupDatabaseTable groupDatabaseTable;
 
   @Inject
   private PermissionCommand(
-    Log log, TeamDatabaseTable teamDatabaseTable,
+    Log log, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable
   ) {
     super(log, "permission", new String[] {"permissions"}, new String[] {
-      "user add <id, permission>", "user remove <id, permission>",
+      "staff add <id, permission>", "staff remove <id, permission>",
       "group add <name, permission>", "group remove <name, permission>"});
-    this.teamDatabaseTable = teamDatabaseTable;
+    this.staffDatabaseTable = staffDatabaseTable;
     this.groupDatabaseTable = groupDatabaseTable;
   }
 
@@ -29,8 +29,8 @@ public final class PermissionCommand extends Command {
     if (arguments.length == 0) {
       return false;
     }
-    if (arguments[0].equalsIgnoreCase("user")) {
-      return userPermission(arguments);
+    if (arguments[0].equalsIgnoreCase("staff")) {
+      return staffPermission(arguments);
     }
     if (arguments[0].equalsIgnoreCase("group")) {
       return groupPermission(arguments);
@@ -38,36 +38,36 @@ public final class PermissionCommand extends Command {
     return false;
   }
 
-  private boolean userPermission(String[] arguments) {
+  private boolean staffPermission(String[] arguments) {
     if (arguments.length < 2) {
       return false;
     }
     if (arguments[1].equalsIgnoreCase("add")) {
-      return addUserPermission(arguments);
+      return addStaffPermission(arguments);
     }
     if (arguments[1].equalsIgnoreCase("remove")) {
-      return removeUserPermission(arguments);
+      return removeStaffPermission(arguments);
     }
     return true;
   }
 
-  private boolean addUserPermission(String[] arguments) {
+  private boolean addStaffPermission(String[] arguments) {
     if (arguments.length != 4) {
       return false;
     }
-    teamDatabaseTable.addTeamMemberPermission(UUID.fromString(arguments[2]),
+    staffDatabaseTable.addStaffPermission(UUID.fromString(arguments[2]),
       arguments[3]);
-    log().info("Used permission added!");
+    log().info("Staff permission added!");
     return true;
   }
 
-  private boolean removeUserPermission(String[] arguments) {
+  private boolean removeStaffPermission(String[] arguments) {
     if (arguments.length != 4) {
       return false;
     }
-    teamDatabaseTable.removeTeamMemberPermission(UUID.fromString(arguments[2]),
+    staffDatabaseTable.removeStaffPermission(UUID.fromString(arguments[2]),
       arguments[3]);
-    log().info("Used permission removed!");
+    log().info("Staff permission removed!");
     return true;
   }
 

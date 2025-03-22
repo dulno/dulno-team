@@ -7,8 +7,8 @@ import com.dulno.core.mail.MailMessage;
 import com.dulno.core.question.*;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,13 +33,13 @@ public final class QuestionInformationController extends TeamController {
   private final QuestionMessageDatabaseTable questionMessageDatabaseTable;
 
   private QuestionInformationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     @Qualifier("supportMail") Mail supportMail,
     QuestionDatabaseTable questionDatabaseTable,
     QuestionMessageDatabaseTable questionMessageDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.supportMail = supportMail;
     this.questionDatabaseTable = questionDatabaseTable;
     this.questionMessageDatabaseTable = questionMessageDatabaseTable;
@@ -55,7 +55,7 @@ public final class QuestionInformationController extends TeamController {
   public CompletableFuture<Map<String, Object>> findQuestions(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "questions.find")
+    return staffHasPermission(findStaffId(request), "questions.find")
       .thenCompose(this::findQuestions);
   }
 
@@ -83,7 +83,7 @@ public final class QuestionInformationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var questionId = body.getUUID("question");
-    return memberHasPermission(findMemberId(request), "question.find")
+    return staffHasPermission(findStaffId(request), "question.find")
       .thenCompose(hasPermission -> questionDatabaseTable.questionExists(questionId)
         .thenCompose(exists -> findQuestion(questionId, hasPermission, exists)));
   }
@@ -130,8 +130,8 @@ public final class QuestionInformationController extends TeamController {
   ) {
     var teamWritten = message.senderType().isTeam();
     var futureSender = teamWritten ?
-      teamDatabaseTable().findTeamMember(UUID.fromString(message.sender()))
-        .thenApply(TeamMember::name) :
+      staffDatabaseTable().findStaff(UUID.fromString(message.sender()))
+        .thenApply(Staff::name) :
       CompletableFuture.completedFuture(message.sender());
     return futureSender.thenApply(sender ->
       assemblyMessageInformation(message, sender, teamWritten));

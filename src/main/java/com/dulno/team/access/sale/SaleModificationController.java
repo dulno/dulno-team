@@ -8,10 +8,8 @@ import com.dulno.core.sale.SaleMessageDatabaseTable;
 import com.dulno.core.sale.SaleMessageSenderType;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
-import com.dulno.team.member.TeamWorkDatabaseTable;
-import com.google.common.collect.Lists;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,21 +26,18 @@ public final class SaleModificationController extends TeamController {
   private final Mail saleMail;
   private final SaleDatabaseTable saleDatabaseTable;
   private final SaleMessageDatabaseTable saleMessageDatabaseTable;
-  private final TeamWorkDatabaseTable teamWorkDatabaseTable;
 
   private SaleModificationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     @Qualifier("saleMail") Mail saleMail,
     SaleDatabaseTable saleDatabaseTable,
-    SaleMessageDatabaseTable saleMessageDatabaseTable,
-    TeamWorkDatabaseTable teamWorkDatabaseTable
+    SaleMessageDatabaseTable saleMessageDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.saleMail = saleMail;
     this.saleDatabaseTable = saleDatabaseTable;
     this.saleMessageDatabaseTable = saleMessageDatabaseTable;
-    this.teamWorkDatabaseTable = teamWorkDatabaseTable;
   }
 
   @RequestMapping(path = "/sale/close/", method = RequestMethod.POST)
@@ -52,7 +47,7 @@ public final class SaleModificationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var saleId = body.getUUID("sale");
-    memberHasPermission(findMemberId(request), "sale.close")
+    staffHasPermission(findStaffId(request), "sale.close")
       .thenAccept(hasPermission -> saleDatabaseTable.saleExists(saleId)
         .thenAccept(exists -> closeSale(saleId, hasPermission, exists)));
   }
@@ -71,15 +66,15 @@ public final class SaleModificationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var saleId = body.getUUID("sale");
-    findMember(request).thenAccept(teamMember ->
-      memberHasPermission(teamMember.id(), "sale.answer")
+    findStaff(request).thenAccept(staff ->
+      staffHasPermission(staff.id(), "sale.answer")
         .thenAccept(hasPermission -> saleDatabaseTable.saleExists(saleId)
-          .thenAccept(exists -> answerSale(teamMember, saleId,
+          .thenAccept(exists -> answerSale(staff, saleId,
             body.getString("message"), hasPermission, exists))));
   }
 
   private void answerSale(
-    TeamMember teamMember, UUID saleId, String message, boolean hasPermission,
+    Staff staff, UUID saleId, String message, boolean hasPermission,
     boolean exists
   ) {
     if (!hasPermission || !exists) {
@@ -87,30 +82,18 @@ public final class SaleModificationController extends TeamController {
     }
     saleDatabaseTable.findSale(saleId).thenAccept(sale ->
       saleMessageDatabaseTable.generateAvailableMessageId().thenAccept(id ->
-        answerSale(teamMember, sale, message, id)));
+        answerSale(staff, sale, message, id)));
   }
 
   private void answerSale(
-    TeamMember teamMember, Sale sale, String message, UUID messageId
+    Staff staff, Sale sale, String message, UUID messageId
   ) {
     sale.resetExpirationTime();
     saleDatabaseTable.updateSale(sale);
     saleMail.send(sale.sender(), "Re: " + sale.title(), message,
       "text/html; charset=utf-8")
       .thenAccept(publicId -> saleMessageDatabaseTable.insertSaleMessage(
-        messageId, publicId, sale.id(), teamMember.id().toString(),
+        messageId, publicId, sale.id(), staff.id().toString(),
         SaleMessageSenderType.TEAM, message, System.currentTimeMillis()));
-    teamWorkDatabaseTable.hasRequestReplies(teamMember.id())
-      .thenAccept(exists -> addTeamMemberReply(teamMember, exists));
-  }
-
-  private void addTeamMemberReply(TeamMember teamMember, boolean workExists) {
-    if (!workExists) {
-      teamWorkDatabaseTable.insertRequestReplies(teamMember.id(),
-        Lists.newArrayList(System.currentTimeMillis()));
-      return;
-    }
-    teamWorkDatabaseTable.addRequestReply(teamMember.id(),
-      System.currentTimeMillis());
   }
 }

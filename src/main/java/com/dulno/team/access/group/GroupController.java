@@ -4,7 +4,7 @@ import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.Group;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,10 +21,10 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 public final class GroupController extends TeamController {
   private GroupController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
   }
 
   @RequestMapping(path = "/group/add/", method = RequestMethod.POST)
@@ -34,7 +34,7 @@ public final class GroupController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var priority = Integer.parseInt(body.getString("priority"));
-    memberHasPermission(findMemberId(request), "group.add").thenAccept(
+    staffHasPermission(findStaffId(request), "group.add").thenAccept(
       hasPermission -> addGroup(body.getString("name"), priority,
         body.getString("color"), hasPermission));
   }
@@ -55,7 +55,7 @@ public final class GroupController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    memberHasPermission(findMemberId(request), "group.remove").thenAccept(
+    staffHasPermission(findStaffId(request), "group.remove").thenAccept(
       hasPermission -> removeGroup(body.getString("name"), hasPermission));
   }
 
@@ -72,7 +72,7 @@ public final class GroupController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    memberHasPermission(findMemberId(request), "group.rename").thenAccept(
+    staffHasPermission(findStaffId(request), "group.rename").thenAccept(
       hasPermission -> renameGroup(body.getString("currentName"),
         body.getString("newName"), hasPermission));
   }
@@ -82,9 +82,9 @@ public final class GroupController extends TeamController {
       return;
     }
     groupDatabaseTable().renameGroup(group, newName);
-    teamDatabaseTable().findTeamMembersOfGroup(group)
-      .thenAccept(members -> members.forEach(member ->
-        teamDatabaseTable().changeTeamMemberGroup(member, newName)));
+    staffDatabaseTable().findStaffOfGroup(group)
+      .thenAccept(staffList -> staffList.forEach(staff ->
+        staffDatabaseTable().changeStaffGroup(staff, newName)));
   }
 
   @RequestMapping(path = "/group/priority/change/", method = RequestMethod.POST)
@@ -95,7 +95,7 @@ public final class GroupController extends TeamController {
     var body = DulnoRequestBody.of(payload, response);
     var group = body.getString("name");
     var priority = Integer.parseInt(body.getString("priority"));
-    memberHasPermission(findMemberId(request), "group.priority.change")
+    staffHasPermission(findStaffId(request), "group.priority.change")
       .thenAccept(hasPermission -> groupDatabaseTable().groupExists(group)
         .thenAccept(groupExists -> changeGroupPriority(group, priority,
           hasPermission, groupExists)));
@@ -117,7 +117,7 @@ public final class GroupController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var group = body.getString("name");
-    memberHasPermission(findMemberId(request), "group.color.change")
+    staffHasPermission(findStaffId(request), "group.color.change")
       .thenAccept(hasPermission -> groupDatabaseTable().groupExists(group)
         .thenAccept(groupExists -> changeGroupColor(group,
           body.getString("color"), hasPermission, groupExists)));
@@ -139,7 +139,7 @@ public final class GroupController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var group = body.getString("name");
-    memberHasPermission(findMemberId(request), "group.permission.add")
+    staffHasPermission(findStaffId(request), "group.permission.add")
       .thenAccept(hasPermission -> groupDatabaseTable().groupExists(group)
         .thenAccept(groupExists -> addGroupPermission(group,
           body.getString("permission"), hasPermission, groupExists)));
@@ -161,7 +161,7 @@ public final class GroupController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var group = body.getString("name");
-    memberHasPermission(findMemberId(request), "group.permission.remove")
+    staffHasPermission(findStaffId(request), "group.permission.remove")
       .thenAccept(hasPermission -> groupDatabaseTable().groupExists(group)
         .thenAccept(groupExists -> removeGroupPermission(group,
           body.getString("permission"), hasPermission, groupExists)));
@@ -180,7 +180,7 @@ public final class GroupController extends TeamController {
   public CompletableFuture<Map<String, Object>> findGroups(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "groups.find")
+    return staffHasPermission(findStaffId(request), "groups.find")
       .thenCompose(this::findGroups);
   }
 
@@ -194,11 +194,11 @@ public final class GroupController extends TeamController {
   }
 
   @RequestMapping(path = "/group/", method = RequestMethod.GET)
-  public CompletableFuture<Map<String, Object>> findMemberGroup(
+  public CompletableFuture<Map<String, Object>> findStaffGroup(
     HttpServletRequest request
   ) {
-    return findMember(request)
-      .thenCompose(member -> groupDatabaseTable().findGroup(member.group()))
+    return findStaff(request)
+      .thenCompose(staff -> groupDatabaseTable().findGroup(staff.group()))
       .thenApply(this::assemblyGroupInformation);
   }
 

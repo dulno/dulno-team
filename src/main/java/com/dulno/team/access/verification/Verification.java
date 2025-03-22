@@ -1,7 +1,7 @@
 package com.dulno.team.access.verification;
 
 import com.dulno.core.hashing.Hashing;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import io.jsonwebtoken.Jwts;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor(staticName = "create")
 @AllArgsConstructor(staticName = "create")
 public final class Verification {
-  private final TeamDatabaseTable teamDatabaseTable;
+  private final StaffDatabaseTable staffDatabaseTable;
   private final Key panelSecret;
   private final Key refreshSecret;
   private final Hashing hashing;
@@ -33,7 +33,7 @@ public final class Verification {
       futureResponse.complete(false);
       return futureResponse;
     }
-    teamDatabaseTable.teamMemberExists(email).thenAccept(exists ->
+    staffDatabaseTable.staffExists(email).thenAccept(exists ->
       isAuthenticated(exists).thenAccept(futureResponse::complete));
     return futureResponse;
   }
@@ -44,7 +44,7 @@ public final class Verification {
       futureResponse.complete(false);
       return futureResponse;
     }
-    teamDatabaseTable.findTeamMember(email).thenAccept(member ->
+    staffDatabaseTable.findStaff(email).thenAccept(member ->
       futureResponse.complete(hashing.matches(password, member.passwordHash())));
     return futureResponse;
   }

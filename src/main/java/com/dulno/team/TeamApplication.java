@@ -7,10 +7,10 @@ import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.intro.Intro;
 import com.dulno.core.log.Log;
 import com.dulno.team.access.cluster.ClusterContextInitializer;
-import com.dulno.team.access.entity.EntityContextInitializer;
-import com.dulno.team.access.mail.MailContextInitializer;
 import com.dulno.team.access.maintenance.MaintenanceContextInitializer;
+import com.dulno.team.access.member.MemberContextInitializer;
 import com.dulno.team.access.offer.OfferContextInitializer;
+import com.dulno.team.access.partner.PartnerContextInitializer;
 import com.dulno.team.access.question.QuestionContextInitializer;
 import com.dulno.team.access.sale.SaleContextInitializer;
 import com.dulno.team.access.setting.SettingContextInitializer;
@@ -18,7 +18,7 @@ import com.dulno.team.access.ticket.TicketContextInitializer;
 import com.dulno.team.access.verification.VerificationContextInitializer;
 import com.dulno.team.command.GroupCommand;
 import com.dulno.team.command.PermissionCommand;
-import com.dulno.team.command.TeamCommand;
+import com.dulno.team.command.StaffCommand;
 import com.dulno.team.configuration.TeamConfiguration;
 import com.dulno.team.maintenance.TeamMaintenanceSchedule;
 import com.google.inject.Guice;
@@ -55,7 +55,7 @@ public class TeamApplication {
   private static void registerCommands(
     CommandRegistry registry, Injector injector
   ) {
-    registry.register(injector.getInstance(TeamCommand.class));
+    registry.register(injector.getInstance(StaffCommand.class));
     registry.register(injector.getInstance(GroupCommand.class));
     registry.register(injector.getInstance(PermissionCommand.class));
   }
@@ -69,9 +69,9 @@ public class TeamApplication {
     application.addInitializers(injector.getInstance(TicketContextInitializer.class));
     application.addInitializers(injector.getInstance(QuestionContextInitializer.class));
     application.addInitializers(injector.getInstance(SaleContextInitializer.class));
-    application.addInitializers(injector.getInstance(EntityContextInitializer.class));
+    application.addInitializers(injector.getInstance(PartnerContextInitializer.class));
+    application.addInitializers(injector.getInstance(MemberContextInitializer.class));
     application.addInitializers(injector.getInstance(OfferContextInitializer.class));
-    application.addInitializers(injector.getInstance(MailContextInitializer.class));
     application.addInitializers(injector.getInstance(SettingContextInitializer.class));
     application.addInitializers(injector.getInstance(ClusterContextInitializer.class));
   }

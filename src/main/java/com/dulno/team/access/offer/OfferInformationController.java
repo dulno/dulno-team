@@ -5,7 +5,7 @@ import com.dulno.core.offer.Offer;
 import com.dulno.core.offer.OfferDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,10 +25,10 @@ public final class OfferInformationController extends TeamController {
   private final OfferDatabaseTable offerDatabaseTable;
 
   private OfferInformationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable, OfferDatabaseTable offerDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.offerDatabaseTable = offerDatabaseTable;
   }
 
@@ -39,7 +39,7 @@ public final class OfferInformationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var targetId = body.getUUID("target");
-    return memberHasPermission(findMemberId(request), "offers.find")
+    return staffHasPermission(findStaffId(request), "offers.find")
       .thenCompose(hasPermission -> findOffers(targetId, hasPermission));
   }
 
@@ -61,7 +61,7 @@ public final class OfferInformationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var offerId = body.getUUID("offer");
-    return memberHasPermission(findMemberId(request), "offer.find")
+    return staffHasPermission(findStaffId(request), "offer.find")
       .thenCompose(hasPermission -> offerDatabaseTable.offerExists(offerId)
         .thenCompose(exists -> findOffer(offerId, hasPermission, exists)));
   }

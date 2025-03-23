@@ -28,8 +28,8 @@ public final class LanguageSettingController extends TeamController {
   public CompletableFuture<Map<String, Object>> language(
     HttpServletRequest request
   ) {
-    return findStaff(request).thenApply(member ->
-      Map.of("language", member.language()));
+    return findStaff(request).thenApply(staff ->
+      Map.of("language", staff.language()));
   }
 
   @RequestMapping(path = "/settings/language/change/", method = RequestMethod.POST)

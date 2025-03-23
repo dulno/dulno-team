@@ -1,6 +1,6 @@
 package com.dulno.team.access.verification;
 
-import com.dulno.core.member.MemberDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.dulno.team.staff.StaffEmailChangeDatabaseTable;
 import com.dulno.team.staff.StaffPasswordResetDatabaseTable;
 import com.dulno.team.staff.StaffVerificationDatabaseTable;
@@ -16,7 +16,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public class VerificationContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-  private final MemberDatabaseTable memberDatabaseTable;
+  private final StaffDatabaseTable staffDatabaseTable;
   private final StaffVerificationDatabaseTable staffVerificationDatabaseTable;
   private final StaffEmailChangeDatabaseTable staffEmailChangeDatabaseTable;
   private final StaffPasswordResetDatabaseTable staffPasswordResetDatabaseTable;
@@ -26,7 +26,7 @@ public class VerificationContextInitializer implements ApplicationContextInitial
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
     var beanFactory = applicationContext.getBeanFactory();
-    beanFactory.registerSingleton("memberDatabaseTable", memberDatabaseTable);
+    beanFactory.registerSingleton("staffDatabaseTable", staffDatabaseTable);
     beanFactory.registerSingleton("teamVerificationDatabaseTable",
       staffVerificationDatabaseTable);
     beanFactory.registerSingleton("teamEmailChangeDatabaseTable",

@@ -286,12 +286,12 @@ public final class ClusterBackupController extends TeamController {
       response.setHeader("X-Accel-Buffering", "no");
     }
     var emitter = new SseEmitter(-1L);
-    var memberId = findStaffIdSecured(token);
-    if (memberId.isEmpty()) {
+    var staffId = findStaffIdSecured(token);
+    if (staffId.isEmpty()) {
       emitter.complete();
       return emitter;
     }
-    staffHasPermission(memberId.get(), "cluster.backup.restore")
+    staffHasPermission(staffId.get(), "cluster.backup.restore")
       .thenAcceptAsync(hasPermission -> restoreClusterBackup(backup,
         keyspaceFilter, tableFilter, keepMaintenance, hasPermission, emitter));
     return emitter;

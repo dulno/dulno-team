@@ -193,7 +193,7 @@ deploy_wiki:
     project: $WIKI_PIPELINE_PROJECT
     branch: main
   only:
-    - main
+    - dev
 
 validate_staging:
   stage: validate

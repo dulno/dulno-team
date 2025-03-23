@@ -7,7 +7,7 @@ import com.dulno.core.error.ErrorDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.error.TeamErrorConfiguration;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,11 +29,11 @@ public final class ClusterErrorController extends TeamController {
   private final TeamErrorConfiguration teamErrorConfiguration;
 
   private ClusterErrorController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable, ErrorDatabaseTable errorDatabaseTable,
     TeamErrorConfiguration teamErrorConfiguration
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.errorDatabaseTable = errorDatabaseTable;
     this.teamErrorConfiguration = teamErrorConfiguration;
   }
@@ -42,7 +42,7 @@ public final class ClusterErrorController extends TeamController {
   public CompletableFuture<Map<String, Object>> findClusterErrors(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "cluster.errors")
+    return staffHasPermission(findStaffId(request), "cluster.errors")
       .thenCompose(this::findClusterErrors);
   }
 
@@ -100,7 +100,7 @@ public final class ClusterErrorController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var errorId = body.getUUID("error");
-    memberHasPermission(findMemberId(request), "cluster.error.fixed")
+    staffHasPermission(findStaffId(request), "cluster.error.fixed")
       .thenAccept(hasPermission -> errorDatabaseTable.errorExists(errorId)
         .thenAccept(exists -> fixedClusterError(errorId, hasPermission, exists)));
   }
@@ -117,7 +117,7 @@ public final class ClusterErrorController extends TeamController {
 
   @RequestMapping(path = "/cluster/errors/fixed/all/", method = RequestMethod.GET)
   public void fixedAllClusterErrors(HttpServletRequest request) {
-    memberHasPermission(findMemberId(request), "cluster.errors.fixed.all")
+    staffHasPermission(findStaffId(request), "cluster.errors.fixed.all")
       .thenAccept(this::fixedAllClusterErrors);
   }
 

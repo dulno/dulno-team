@@ -8,10 +8,8 @@ import com.dulno.core.question.QuestionMessageDatabaseTable;
 import com.dulno.core.question.QuestionMessageSenderType;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
-import com.dulno.team.member.TeamWorkDatabaseTable;
-import com.google.common.collect.Lists;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,21 +26,18 @@ public final class QuestionModificationController extends TeamController {
   private final Mail supportMail;
   private final QuestionDatabaseTable questionDatabaseTable;
   private final QuestionMessageDatabaseTable questionMessageDatabaseTable;
-  private final TeamWorkDatabaseTable teamWorkDatabaseTable;
 
   private QuestionModificationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     @Qualifier("supportMail") Mail supportMail,
     QuestionDatabaseTable questionDatabaseTable,
-    QuestionMessageDatabaseTable questionMessageDatabaseTable,
-    TeamWorkDatabaseTable teamWorkDatabaseTable
+    QuestionMessageDatabaseTable questionMessageDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.supportMail = supportMail;
     this.questionDatabaseTable = questionDatabaseTable;
     this.questionMessageDatabaseTable = questionMessageDatabaseTable;
-    this.teamWorkDatabaseTable = teamWorkDatabaseTable;
   }
 
   @RequestMapping(path = "/question/close/", method = RequestMethod.POST)
@@ -52,7 +47,7 @@ public final class QuestionModificationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var questionId = body.getUUID("question");
-    memberHasPermission(findMemberId(request), "question.close")
+    staffHasPermission(findStaffId(request), "question.close")
       .thenAccept(hasPermission -> questionDatabaseTable.questionExists(questionId)
         .thenAccept(exists -> closeQuestion(questionId, hasPermission, exists)));
   }
@@ -73,15 +68,15 @@ public final class QuestionModificationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var questionId = body.getUUID("question");
-    findMember(request).thenAccept(teamMember ->
-      memberHasPermission(teamMember.id(), "question.answer")
+    findStaff(request).thenAccept(staff ->
+      staffHasPermission(staff.id(), "question.answer")
         .thenAccept(hasPermission -> questionDatabaseTable.questionExists(questionId)
-          .thenAccept(exists -> answerQuestion(teamMember, questionId,
+          .thenAccept(exists -> answerQuestion(staff, questionId,
             body.getString("message"), hasPermission, exists))));
   }
 
   private void answerQuestion(
-    TeamMember teamMember, UUID questionId, String message, boolean hasPermission,
+    Staff staff, UUID questionId, String message, boolean hasPermission,
     boolean exists
   ) {
     if (!hasPermission || !exists) {
@@ -89,30 +84,18 @@ public final class QuestionModificationController extends TeamController {
     }
     questionDatabaseTable.findQuestion(questionId).thenAccept(question ->
       questionMessageDatabaseTable.generateAvailableMessageId().thenAccept(id ->
-        answerQuestion(teamMember, question, message, id)));
+        answerQuestion(staff, question, message, id)));
   }
 
   private void answerQuestion(
-    TeamMember teamMember, Question question, String message, UUID messageId
+    Staff staff, Question question, String message, UUID messageId
   ) {
     question.resetExpirationTime();
     questionDatabaseTable.updateQuestion(question);
     supportMail.send(question.sender(), "Re: " + question.title(), message,
       "text/html; charset=utf-8")
       .thenAccept(publicId -> questionMessageDatabaseTable.insertQuestionMessage(
-        messageId, publicId, question.id(), teamMember.id().toString(),
+        messageId, publicId, question.id(), staff.id().toString(),
         QuestionMessageSenderType.TEAM, message, System.currentTimeMillis()));
-    teamWorkDatabaseTable.hasRequestReplies(teamMember.id())
-      .thenAccept(exists -> addTeamMemberReply(teamMember, exists));
-  }
-
-  private void addTeamMemberReply(TeamMember teamMember, boolean workExists) {
-    if (!workExists) {
-      teamWorkDatabaseTable.insertRequestReplies(teamMember.id(),
-        Lists.newArrayList(System.currentTimeMillis()));
-      return;
-    }
-    teamWorkDatabaseTable.addRequestReply(teamMember.id(),
-      System.currentTimeMillis());
   }
 }

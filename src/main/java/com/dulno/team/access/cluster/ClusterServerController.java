@@ -5,7 +5,7 @@ import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
 import com.dulno.team.hetzner.HetznerRequestFactory;
 import com.dulno.team.hetzner.HetznerServer;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,11 +29,11 @@ public final class ClusterServerController extends TeamController {
   private final HetznerRequestFactory hetznerRequestFactory;
 
   private ClusterServerController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     HetznerRequestFactory hetznerRequestFactory
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.hetznerRequestFactory = hetznerRequestFactory;
   }
 
@@ -41,7 +41,7 @@ public final class ClusterServerController extends TeamController {
   public CompletableFuture<Map<String, Object>> findClusterServers(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "cluster.servers")
+    return staffHasPermission(findStaffId(request), "cluster.servers")
       .thenCompose(this::findClusterServers);
   }
 
@@ -71,7 +71,7 @@ public final class ClusterServerController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    return memberHasPermission(findMemberId(request), "cluster.server")
+    return staffHasPermission(findStaffId(request), "cluster.server")
       .thenCompose(hasPermission -> findClusterServer(body.getInt("serverId"),
         hasPermission));
   }

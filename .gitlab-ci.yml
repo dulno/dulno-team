@@ -15,7 +15,7 @@ variables:
 
 build:
   stage: build
-  image: gradle:8.13-jdk21
+  image: gradle:8.13.0-jdk21
   script:
     - gradle bootJar
     - gradle javadoc
@@ -193,7 +193,7 @@ deploy_wiki:
     project: $WIKI_PIPELINE_PROJECT
     branch: main
   only:
-    - main
+    - dev
 
 validate_staging:
   stage: validate

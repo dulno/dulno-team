@@ -1,11 +1,11 @@
-package com.dulno.team.access.entity;
+package com.dulno.team.access.partner;
 
 import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.stripe.StripeDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.stripe.StripeClient;
@@ -27,37 +27,37 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public final class EntityPaymentController extends TeamController {
+public final class PartnerPaymentController extends TeamController {
   private final StripeDatabaseTable stripeDatabaseTable;
   private final StripeClient stripeClient;
   private final ErrorRepository errorRepository;
 
-  private EntityPaymentController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+  private PartnerPaymentController(
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable, StripeDatabaseTable stripeDatabaseTable,
     StripeClient stripeClient, ErrorRepository errorRepository
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.stripeDatabaseTable = stripeDatabaseTable;
     this.stripeClient = stripeClient;
     this.errorRepository = errorRepository;
   }
 
-  @RequestMapping(path = "/entity/payments/find/", method = RequestMethod.POST)
-  public CompletableFuture<Map<String, Object>> findEntityPayments(
+  @RequestMapping(path = "/partner/payments/find/", method = RequestMethod.POST)
+  public CompletableFuture<Map<String, Object>> findPartnerPayments(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var entityId = body.getUUID("entity");
-    return memberHasPermission(findMemberId(request), "entity.payments.find")
+    var partnerId = body.getUUID("partner");
+    return staffHasPermission(findStaffId(request), "partner.payments.find")
       .thenCompose(hasPermission ->
-        stripeDatabaseTable.stripeAccountExistsByTarget(entityId)
-          .thenComposeAsync(stripeExists -> findEntityPayments(entityId,
+        stripeDatabaseTable.stripeAccountExistsByPartner(partnerId)
+          .thenComposeAsync(stripeExists -> findPartnerPayments(partnerId,
             hasPermission, stripeExists)));
   }
 
-  private CompletableFuture<Map<String, Object>> findEntityPayments(
+  private CompletableFuture<Map<String, Object>> findPartnerPayments(
     UUID target, boolean hasPermission, boolean stripeAccountExists
   ) {
     if (!hasPermission) {
@@ -66,7 +66,7 @@ public final class EntityPaymentController extends TeamController {
     if (!stripeAccountExists) {
       return CompletableFuture.completedFuture(Map.of("found", false));
     }
-    return stripeDatabaseTable.findStripeAccountByTarget(target)
+    return stripeDatabaseTable.findStripeAccountByPartner(target)
       .thenApplyAsync(account -> findPayments(account.accountId()));
   }
 

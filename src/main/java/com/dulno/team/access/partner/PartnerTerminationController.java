@@ -1,4 +1,4 @@
-package com.dulno.team.access.entity;
+package com.dulno.team.access.partner;
 
 import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.core.bundle.Bundle;
@@ -9,7 +9,7 @@ import com.dulno.core.stripe.StripeDatabaseTable;
 import com.dulno.core.stripe.TerminationDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Maps;
 import com.stripe.StripeClient;
 import com.stripe.model.Subscription;
@@ -30,22 +30,22 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public final class EntityTerminationController extends TeamController {
+public final class PartnerTerminationController extends TeamController {
   private final BundleDatabaseTable bundleDatabaseTable;
   private final TerminationDatabaseTable terminationDatabaseTable;
   private final StripeDatabaseTable stripeDatabaseTable;
   private final StripeClient stripeClient;
   private final ErrorRepository errorRepository;
 
-  private EntityTerminationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+  private PartnerTerminationController(
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     BundleDatabaseTable bundleDatabaseTable,
     TerminationDatabaseTable terminationDatabaseTable,
     StripeDatabaseTable stripeDatabaseTable, StripeClient stripeClient,
     ErrorRepository errorRepository
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.bundleDatabaseTable = bundleDatabaseTable;
     this.terminationDatabaseTable = terminationDatabaseTable;
     this.stripeDatabaseTable = stripeDatabaseTable;
@@ -53,22 +53,22 @@ public final class EntityTerminationController extends TeamController {
     this.errorRepository = errorRepository;
   }
 
-  @RequestMapping(path = "/entity/termination/status/", method = RequestMethod.POST)
-  public CompletableFuture<Map<String, Object>> findEntityTerminationStatus(
+  @RequestMapping(path = "/partner/termination/status/", method = RequestMethod.POST)
+  public CompletableFuture<Map<String, Object>> findPartnerTerminationStatus(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var entityId = body.getUUID("entity");
-    return memberHasPermission(findMemberId(request), "entity.termination.status")
-      .thenCompose(hasPermission -> bundleDatabaseTable.bundleExists(entityId)
+    var partnerId = body.getUUID("partner");
+    return staffHasPermission(findStaffId(request), "partner.termination.status")
+      .thenCompose(hasPermission -> bundleDatabaseTable.bundleExists(partnerId)
         .thenCompose(bundleExists ->
-          stripeDatabaseTable.stripeAccountExistsByTarget(entityId)
-            .thenCompose(stripeExists -> findEntityTerminationStatus(
-              entityId, hasPermission, bundleExists, stripeExists))));
+          stripeDatabaseTable.stripeAccountExistsByPartner(partnerId)
+            .thenCompose(stripeExists -> findPartnerTerminationStatus(
+              partnerId, hasPermission, bundleExists, stripeExists))));
   }
 
-  private CompletableFuture<Map<String, Object>> findEntityTerminationStatus(
+  private CompletableFuture<Map<String, Object>> findPartnerTerminationStatus(
     UUID targetId, boolean hasPermission, boolean bundleExists,
     boolean stripeAccountExists
   ) {
@@ -79,12 +79,12 @@ public final class EntityTerminationController extends TeamController {
       return CompletableFuture.completedFuture(Map.of("terminable", false));
     }
     return bundleDatabaseTable.findBundle(targetId)
-      .thenCompose(bundle -> stripeDatabaseTable.findStripeAccountByTarget(targetId)
-        .thenCompose(stripeAccount -> findEntityTerminationStatus(targetId, bundle,
+      .thenCompose(bundle -> stripeDatabaseTable.findStripeAccountByPartner(targetId)
+        .thenCompose(stripeAccount -> findPartnerTerminationStatus(targetId, bundle,
           stripeAccount.accountId())));
   }
 
-  private CompletableFuture<Map<String, Object>> findEntityTerminationStatus(
+  private CompletableFuture<Map<String, Object>> findPartnerTerminationStatus(
     UUID targetId, Bundle bundle, String stripeAccountId
   ) {
     if (bundle.bundleType().isTrial() || bundle.bundleRuntime().isUnbound()) {
@@ -100,14 +100,14 @@ public final class EntityTerminationController extends TeamController {
           "terminated", true));
       }
       return terminationDatabaseTable.terminationExists(targetId)
-        .thenApply(exists -> findEntityTerminationStatus(bundle, exists));
+        .thenApply(exists -> findPartnerTerminationStatus(bundle, exists));
     } catch (Exception exception) {
       errorRepository.processError(exception);
       return CompletableFuture.completedFuture(Maps.newHashMap());
     }
   }
 
-  private Map<String, Object> findEntityTerminationStatus(
+  private Map<String, Object> findPartnerTerminationStatus(
     Bundle bundle, boolean terminationExists
   ) {
     if (!terminationExists) {
@@ -117,22 +117,22 @@ public final class EntityTerminationController extends TeamController {
     return Map.of("terminable", true, "terminated", true);
   }
 
-  @RequestMapping(path = "/entity/bundle/terminate/", method = RequestMethod.POST)
-  public void terminateEntityBundle(
+  @RequestMapping(path = "/partner/bundle/terminate/", method = RequestMethod.POST)
+  public void terminatePartnerBundle(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var entityId = body.getUUID("entity");
-    memberHasPermission(findMemberId(request), "entity.bundle.terminate")
-      .thenAccept(hasPermission -> bundleDatabaseTable.bundleExists(entityId)
+    var partnerId = body.getUUID("partner");
+    staffHasPermission(findStaffId(request), "partner.bundle.terminate")
+      .thenAccept(hasPermission -> bundleDatabaseTable.bundleExists(partnerId)
         .thenAccept(bundleExists ->
-          stripeDatabaseTable.stripeAccountExistsByTarget(entityId)
-            .thenAccept(stripeExists -> terminateEntityBundle(entityId,
+          stripeDatabaseTable.stripeAccountExistsByPartner(partnerId)
+            .thenAccept(stripeExists -> terminatePartnerBundle(partnerId,
               hasPermission, bundleExists, stripeExists))));
   }
 
-  private void terminateEntityBundle(
+  private void terminatePartnerBundle(
     UUID targetId, boolean hasPermission, boolean bundleExists,
     boolean stripeAccountExists
   ) {
@@ -140,12 +140,12 @@ public final class EntityTerminationController extends TeamController {
       return;
     }
     bundleDatabaseTable.findBundle(targetId)
-      .thenAccept(bundle -> stripeDatabaseTable.findStripeAccountByTarget(targetId)
-        .thenAccept(stripeAccount -> terminateEntityBundle(targetId, bundle,
+      .thenAccept(bundle -> stripeDatabaseTable.findStripeAccountByPartner(targetId)
+        .thenAccept(stripeAccount -> terminatePartnerBundle(targetId, bundle,
           stripeAccount)));
   }
 
-  private void terminateEntityBundle(
+  private void terminatePartnerBundle(
     UUID targetId, Bundle bundle, StripeAccount account
   ) {
     if (bundle.bundleRuntime().isMonthly()) {
@@ -184,7 +184,7 @@ public final class EntityTerminationController extends TeamController {
     try {
       subscription.cancel();
       return stripeDatabaseTable.updateStripeAccount(account.accountId(),
-        account.targetId(), account.userId(), "");
+        account.partnerId(), account.memberId(), "");
     } catch (Exception exception) {
       errorRepository.processError(exception);
       return CompletableFuture.completedFuture(null);

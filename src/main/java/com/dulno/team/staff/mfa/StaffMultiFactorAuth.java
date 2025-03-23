@@ -1,7 +1,7 @@
-package com.dulno.team.member.mfa;
+package com.dulno.team.staff.mfa;
 
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Lists;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import dev.samstevens.totp.code.DefaultCodeVerifier;
@@ -18,13 +18,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor(staticName = "create")
-public final class TeamMultiFactorAuth {
-  private final TeamMultiFactorAuthDatabaseTable multiFactorAuthDatabaseTable;
-  private final TeamDatabaseTable teamDatabaseTable;
-  private final UUID memberId;
+public final class StaffMultiFactorAuth {
+  private final StaffMultiFactorAuthDatabaseTable multiFactorAuthDatabaseTable;
+  private final StaffDatabaseTable staffDatabaseTable;
+  private final UUID staffId;
 
   public CompletableFuture<Void> setup() {
-    return multiFactorAuthDatabaseTable.insertAuth(memberId, generateSecret(),
+    return multiFactorAuthDatabaseTable.insertAuth(staffId, generateSecret(),
       generateRecoveryCodes());
   }
 
@@ -39,14 +39,14 @@ public final class TeamMultiFactorAuth {
   }
 
   public CompletableFuture<byte[]> generateQRCode() {
-    return teamDatabaseTable.findTeamMember(memberId)
-      .thenCompose(member -> multiFactorAuthDatabaseTable.findAuth(memberId)
-        .thenApplyAsync(auth -> buildQRCode(member, auth.secret())));
+    return staffDatabaseTable.findStaff(staffId)
+      .thenCompose(staff -> multiFactorAuthDatabaseTable.findAuth(staffId)
+        .thenApplyAsync(auth -> buildQRCode(staff, auth.secret())));
   }
 
-  private byte[] buildQRCode(TeamMember member, String secret) {
+  private byte[] buildQRCode(Staff staff, String secret) {
     var data = new QrData.Builder()
-      .label(member.email())
+      .label(staff.email())
       .secret(secret)
       .issuer("Dulno Panel")
       .algorithm(HashingAlgorithm.SHA256)
@@ -62,7 +62,7 @@ public final class TeamMultiFactorAuth {
   }
 
   public CompletableFuture<Boolean> verifyCode(String code) {
-    return multiFactorAuthDatabaseTable.authExists(memberId)
+    return multiFactorAuthDatabaseTable.authExists(staffId)
       .thenCompose(exists -> verifyCode(code, exists));
   }
 
@@ -78,12 +78,12 @@ public final class TeamMultiFactorAuth {
     var timeProvider = new SystemTimeProvider();
     var codeGenerator = new DefaultCodeGenerator(HashingAlgorithm.SHA256);
     var verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
-    return multiFactorAuthDatabaseTable.findAuth(memberId)
+    return multiFactorAuthDatabaseTable.findAuth(staffId)
       .thenApplyAsync(auth -> verifier.isValidCode(auth.secret(), code));
   }
 
   public CompletableFuture<Boolean> verifyRecoveryCode(String recoveryCode) {
-    return multiFactorAuthDatabaseTable.findAuth(memberId)
+    return multiFactorAuthDatabaseTable.findAuth(staffId)
       .thenApply(auth -> auth.recoveryCodes().contains(recoveryCode));
   }
 }

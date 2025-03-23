@@ -1,9 +1,9 @@
-package com.dulno.team.member.session;
+package com.dulno.team.staff.session;
 
 import com.dulno.core.database.DatabaseColumn;
 import com.dulno.core.database.DatabaseRow;
 import com.dulno.core.database.DatabaseTable;
-import com.dulno.core.session.SessionStatus;
+import com.dulno.core.member.session.SessionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -14,14 +14,14 @@ import java.util.UUID;
 @Getter
 @Accessors(fluent = true)
 @AllArgsConstructor(staticName = "create")
-public final class TeamSession {
-  public static TeamSession of(DatabaseRow row, DatabaseTable table) {
+public final class StaffSession {
+  public static StaffSession of(DatabaseRow row, DatabaseTable table) {
     return of(row, table.columns().stream().map(DatabaseColumn::name).toList());
   }
 
-  public static TeamSession of(DatabaseRow row, List<String> columns) {
+  public static StaffSession of(DatabaseRow row, List<String> columns) {
     return create(row.findCell(columns.indexOf("id")).uuidValue(),
-      row.findCell(columns.indexOf("member")).uuidValue(),
+      row.findCell(columns.indexOf("staff")).uuidValue(),
       SessionStatus.valueOf(row.findCell(columns.indexOf("status")).stringValue()),
       row.findCell(columns.indexOf("devicePlatform")).stringValue(),
       row.findCell(columns.indexOf("ipAddress")).stringValue(),
@@ -33,7 +33,7 @@ public final class TeamSession {
   }
 
   private final UUID id;
-  private final UUID memberId;
+  private final UUID staffId;
   private SessionStatus status;
   private final String devicePlatform;
   private final String ipAddress;

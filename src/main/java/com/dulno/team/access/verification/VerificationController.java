@@ -2,16 +2,16 @@ package com.dulno.team.access.verification;
 
 import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.core.hashing.Hashing;
-import com.dulno.core.session.SessionStatus;
-import com.dulno.core.session.UserAgent;
+import com.dulno.core.member.session.SessionStatus;
+import com.dulno.core.member.session.UserAgent;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
-import com.dulno.team.member.TeamVerificationDatabaseTable;
-import com.dulno.team.member.mfa.TeamMultiFactorAuthFactory;
-import com.dulno.team.member.session.TeamSession;
-import com.dulno.team.member.session.TeamSessionDatabaseTable;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
+import com.dulno.team.staff.StaffVerificationDatabaseTable;
+import com.dulno.team.staff.mfa.StaffMultiFactorAuthFactory;
+import com.dulno.team.staff.session.StaffSession;
+import com.dulno.team.staff.session.StaffSessionDatabaseTable;
 import com.maxmind.geoip2.DatabaseReader;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -35,27 +35,27 @@ import java.util.concurrent.CompletableFuture;
 public final class VerificationController extends TeamController {
   private final Key panelKey;
   private final Key refreshKey;
-  private final TeamDatabaseTable teamDatabaseTable;
-  private final TeamVerificationDatabaseTable teamVerificationDatabaseTable;
-  private final TeamMultiFactorAuthFactory multiFactorAuthFactory;
-  private final TeamSessionDatabaseTable sessionDatabaseTable;
+  private final StaffDatabaseTable staffDatabaseTable;
+  private final StaffVerificationDatabaseTable staffVerificationDatabaseTable;
+  private final StaffMultiFactorAuthFactory multiFactorAuthFactory;
+  private final StaffSessionDatabaseTable sessionDatabaseTable;
   private final DatabaseReader geoDatabaseReader;
   private final Hashing hashing;
 
   private VerificationController(
     @Qualifier("panelKey") Key panelKey,
     @Qualifier("panelRefreshKey") Key refreshKey,
-    TeamDatabaseTable teamDatabaseTable, GroupDatabaseTable groupDatabaseTable,
-    TeamVerificationDatabaseTable teamVerificationDatabaseTable,
-    TeamMultiFactorAuthFactory multiFactorAuthFactory,
-    TeamSessionDatabaseTable sessionDatabaseTable, DatabaseReader geoDatabaseReader,
+    StaffDatabaseTable staffDatabaseTable, GroupDatabaseTable groupDatabaseTable,
+    StaffVerificationDatabaseTable staffVerificationDatabaseTable,
+    StaffMultiFactorAuthFactory multiFactorAuthFactory,
+    StaffSessionDatabaseTable sessionDatabaseTable, DatabaseReader geoDatabaseReader,
     Hashing hashing
   ) {
-    super(panelKey, teamDatabaseTable, groupDatabaseTable);
+    super(panelKey, staffDatabaseTable, groupDatabaseTable);
     this.panelKey = panelKey;
     this.refreshKey = refreshKey;
-    this.teamDatabaseTable = teamDatabaseTable;
-    this.teamVerificationDatabaseTable = teamVerificationDatabaseTable;
+    this.staffDatabaseTable = staffDatabaseTable;
+    this.staffVerificationDatabaseTable = staffVerificationDatabaseTable;
     this.multiFactorAuthFactory = multiFactorAuthFactory;
     this.sessionDatabaseTable = sessionDatabaseTable;
     this.geoDatabaseReader = geoDatabaseReader;
@@ -67,39 +67,39 @@ public final class VerificationController extends TeamController {
     @RequestBody String payload, HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var memberId = body.getUUID("member");
-    teamVerificationDatabaseTable.verificationExists(memberId)
-      .thenAccept(exists -> completeVerification(memberId,
+    var staffId = body.getUUID("staff");
+    staffVerificationDatabaseTable.verificationExists(staffId)
+      .thenAccept(exists -> completeVerification(staffId,
         body.getString("password"), body.getString("token"), exists));
   }
 
   private void completeVerification(
-    UUID memberId, String password, String submittedToken, boolean tokenExists
+    UUID staffId, String password, String submittedToken, boolean tokenExists
   ) {
     if (!tokenExists) {
       return;
     }
-    teamVerificationDatabaseTable.findVerification(memberId)
-      .thenAccept(originalToken -> completeVerification(memberId, password,
+    staffVerificationDatabaseTable.findVerification(staffId)
+      .thenAccept(originalToken -> completeVerification(staffId, password,
         submittedToken, originalToken));
   }
 
   private void completeVerification(
-    UUID memberId, String password, String submittedToken, String originalToken
+    UUID staffId, String password, String submittedToken, String originalToken
   ) {
     if (!submittedToken.equals(originalToken)) {
       return;
     }
-    teamDatabaseTable.findTeamMember(memberId).thenAccept(member ->
-      completeVerification(member, password));
+    staffDatabaseTable.findStaff(staffId).thenAccept(staff ->
+      completeVerification(staff, password));
   }
 
-  private void completeVerification(TeamMember member, String password) {
-    if (!member.passwordHash().isEmpty()) {
+  private void completeVerification(Staff staff, String password) {
+    if (!staff.passwordHash().isEmpty()) {
       return;
     }
-    teamVerificationDatabaseTable.deleteVerification(member.id());
-    teamDatabaseTable.changeTeamMemberPassword(member, hashing.hash(password));
+    staffVerificationDatabaseTable.deleteVerification(staff.id());
+    staffDatabaseTable.changeStaffPassword(staff, hashing.hash(password));
   }
 
   @RequestMapping(path = "/verification/login/", method = RequestMethod.POST)
@@ -128,7 +128,7 @@ public final class VerificationController extends TeamController {
     HttpServletRequest request, String email, String password,
     String multiFactorCode
   ) {
-    var verification = Verification.create(teamDatabaseTable, panelKey,
+    var verification = Verification.create(staffDatabaseTable, panelKey,
       refreshKey, hashing, email.trim(), password);
     var futureResponse = new CompletableFuture<Map<String, Object>>();
     verification.isAuthenticated().thenAccept(isAuthenticated ->
@@ -145,14 +145,14 @@ public final class VerificationController extends TeamController {
       futureResponse.complete(Map.of("success", false, "error", 1000));
       return;
     }
-    teamDatabaseTable.findTeamMember(verification.email()).thenAccept(member ->
-      multiFactorAuthFactory.createAuth(member.id()).verifyCode(multiFactorCode)
-        .thenAccept(verified -> checkMultiFactorAuth(request, member,
+    staffDatabaseTable.findStaff(verification.email()).thenAccept(staff ->
+      multiFactorAuthFactory.createAuth(staff.id()).verifyCode(multiFactorCode)
+        .thenAccept(verified -> checkMultiFactorAuth(request, staff,
           verification, futureResponse, verified)));
   }
 
   private void checkMultiFactorAuth(
-    HttpServletRequest request, TeamMember member, Verification verification,
+    HttpServletRequest request, Staff staff, Verification verification,
     CompletableFuture<Map<String, Object>> futureResponse,
     boolean multiFactorVerified
   ) {
@@ -162,23 +162,23 @@ public final class VerificationController extends TeamController {
     }
     sessionDatabaseTable.generateAvailableSessionId()
       .thenAccept(sessionId -> completeLogin(request, verification,
-        futureResponse, member, sessionId));
+        futureResponse, staff, sessionId));
   }
 
   private void completeLogin(
     HttpServletRequest request, Verification verification,
     CompletableFuture<Map<String, Object>> futureResponse,
-    TeamMember member, UUID sessionId
+    Staff staff, UUID sessionId
   ) {
-    var panelApiKey = verification.generatePanelApiKey(member.id(), sessionId);
-    var refreshToken = verification.generateRefreshToken(member.id(), sessionId);
-    storeSession(request, member.id(), sessionId, refreshToken);
+    var panelApiKey = verification.generatePanelApiKey(staff.id(), sessionId);
+    var refreshToken = verification.generateRefreshToken(staff.id(), sessionId);
+    storeSession(request, staff.id(), sessionId, refreshToken);
     futureResponse.complete(Map.of("success", true, "panelApiKey", panelApiKey,
       "refreshToken", refreshToken));
   }
 
   public void storeSession(
-    HttpServletRequest request, UUID memberId, UUID sessionId, String refreshToken
+    HttpServletRequest request, UUID staffId, UUID sessionId, String refreshToken
   ) {
     var country = "";
     var city = "";
@@ -192,7 +192,7 @@ public final class VerificationController extends TeamController {
     try {
       var platform = UserAgent.create(request.getHeader("User-Agent"))
         .findPlatform();
-      sessionDatabaseTable.insertSession(sessionId, memberId, SessionStatus.ACTIVE,
+      sessionDatabaseTable.insertSession(sessionId, staffId, SessionStatus.ACTIVE,
         platform, ipAddress, country, city, System.currentTimeMillis(),
         refreshToken, System.currentTimeMillis());
     } catch (Exception ignored) {
@@ -209,39 +209,39 @@ public final class VerificationController extends TeamController {
     if (result.getKey() != HttpServletResponse.SC_ACCEPTED) {
       return CompletableFuture.completedFuture(Map.of("success", "false"));
     }
-    var memberId = UUID.fromString(result.getValue().get("id", String.class));
+    var staffId = UUID.fromString(result.getValue().get("id", String.class));
     var sessionId = UUID.fromString(result.getValue().get("session", String.class));
-    return teamDatabaseTable().teamMemberExists(memberId)
-      .thenCompose(memberExists -> sessionDatabaseTable.sessionExists(sessionId)
-        .thenCompose(sessionExists -> refreshVerification(refreshToken, memberId,
-          sessionId, memberExists, sessionExists)));
+    return staffDatabaseTable().staffExists(staffId)
+      .thenCompose(staffExists -> sessionDatabaseTable.sessionExists(sessionId)
+        .thenCompose(sessionExists -> refreshVerification(refreshToken, staffId,
+          sessionId, staffExists, sessionExists)));
   }
 
   private CompletableFuture<Map<String, Object>> refreshVerification(
-    String refreshToken, UUID memberId, UUID sessionId, boolean memberExists,
+    String refreshToken, UUID staffId, UUID sessionId, boolean staffExists,
     boolean sessionExists
   ) {
-    if (!memberExists || !sessionExists) {
+    if (!staffExists || !sessionExists) {
       return CompletableFuture.completedFuture(Map.of("success", "false"));
     }
-    return teamDatabaseTable().findTeamMember(memberId)
-      .thenCompose(member -> sessionDatabaseTable.findSession(sessionId)
-        .thenApply(session -> refreshVerification(refreshToken, member, session)));
+    return staffDatabaseTable().findStaff(staffId)
+      .thenCompose(staff -> sessionDatabaseTable.findSession(sessionId)
+        .thenApply(session -> refreshVerification(refreshToken, staff, session)));
   }
 
   private Map<String, Object> refreshVerification(
-    String refreshToken, TeamMember member, TeamSession session
+    String refreshToken, Staff staff, StaffSession session
   ) {
     if (session.status().isClosed() ||
       !session.lastRefreshToken().equals(refreshToken)
     ) {
       return Map.of("success", "false");
     }
-    var verification = Verification.create(teamDatabaseTable(), panelKey,
+    var verification = Verification.create(staffDatabaseTable(), panelKey,
       refreshKey, hashing);
-    var newPanelApiKey = verification.generatePanelApiKey(member.id(),
+    var newPanelApiKey = verification.generatePanelApiKey(staff.id(),
       session.id());
-    var newRefreshToken = verification.generateRefreshToken(member.id(),
+    var newRefreshToken = verification.generateRefreshToken(staff.id(),
       session.id());
     sessionDatabaseTable.updateSessionRefreshToken(session.id(), newRefreshToken);
     return Map.of("success", "true", "panelApiKey", newPanelApiKey,
@@ -276,7 +276,7 @@ public final class VerificationController extends TeamController {
         new AbstractMap.SimpleEntry<>(false, result.getValue()));
     }
     var userId = UUID.fromString(result.getValue().get("id", String.class));
-    return teamDatabaseTable().teamMemberExists(userId)
+    return staffDatabaseTable().staffExists(userId)
       .thenApply(exists -> new AbstractMap.SimpleEntry<>(exists, result.getValue()));
   }
 

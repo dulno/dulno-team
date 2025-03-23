@@ -5,7 +5,7 @@ import com.dulno.core.maintenance.MaintenanceDatabaseTable;
 import com.dulno.core.maintenance.MaintenanceStatus;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,11 +23,11 @@ public final class MaintenanceInformationController extends TeamController {
   private final MaintenanceDatabaseTable maintenanceDatabaseTable;
 
   private MaintenanceInformationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     MaintenanceDatabaseTable maintenanceDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.maintenanceDatabaseTable = maintenanceDatabaseTable;
   }
 
@@ -35,7 +35,7 @@ public final class MaintenanceInformationController extends TeamController {
   public CompletableFuture<Map<String, Object>> findMaintenance(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "maintenance.find")
+    return staffHasPermission(findStaffId(request), "maintenance.find")
       .thenCompose(this::findMaintenance);
   }
 

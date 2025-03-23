@@ -3,7 +3,7 @@ package com.dulno.team.access.setting;
 import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,18 +18,18 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 public final class LanguageSettingController extends TeamController {
   private LanguageSettingController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
   }
 
   @RequestMapping(path = "/settings/language/", method = RequestMethod.GET)
   public CompletableFuture<Map<String, Object>> language(
     HttpServletRequest request
   ) {
-    return findMember(request).thenApply(member ->
-      Map.of("language", member.language()));
+    return findStaff(request).thenApply(staff ->
+      Map.of("language", staff.language()));
   }
 
   @RequestMapping(path = "/settings/language/change/", method = RequestMethod.POST)
@@ -38,7 +38,7 @@ public final class LanguageSettingController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    teamDatabaseTable().changeTeamMemberLanguage(findMemberId(request),
+    staffDatabaseTable().changeStaffLanguage(findStaffId(request),
       body.getString("language"));
   }
 }

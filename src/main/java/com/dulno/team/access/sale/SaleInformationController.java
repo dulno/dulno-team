@@ -7,8 +7,8 @@ import com.dulno.core.mail.MailMessage;
 import com.dulno.core.sale.*;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,12 +33,12 @@ public final class SaleInformationController extends TeamController {
   private final SaleMessageDatabaseTable saleMessageDatabaseTable;
 
   private SaleInformationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable, @Qualifier("saleMail") Mail saleMail,
     SaleDatabaseTable saleDatabaseTable,
     SaleMessageDatabaseTable saleMessageDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.saleMail = saleMail;
     this.saleDatabaseTable = saleDatabaseTable;
     this.saleMessageDatabaseTable = saleMessageDatabaseTable;
@@ -54,7 +54,7 @@ public final class SaleInformationController extends TeamController {
   public CompletableFuture<Map<String, Object>> findSales(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "sales.find")
+    return staffHasPermission(findStaffId(request), "sales.find")
       .thenCompose(this::findSales);
   }
 
@@ -82,7 +82,7 @@ public final class SaleInformationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var saleId = body.getUUID("sale");
-    return memberHasPermission(findMemberId(request), "sale.find")
+    return staffHasPermission(findStaffId(request), "sale.find")
       .thenCompose(hasPermission -> saleDatabaseTable.saleExists(saleId)
         .thenCompose(exists -> findSale(saleId, hasPermission, exists)));
   }
@@ -136,8 +136,8 @@ public final class SaleInformationController extends TeamController {
   ) {
     var teamWritten = message.senderType().isTeam();
     var futureSender = teamWritten ?
-      teamDatabaseTable().findTeamMember(UUID.fromString(message.sender()))
-        .thenApply(TeamMember::name) :
+      staffDatabaseTable().findStaff(UUID.fromString(message.sender()))
+        .thenApply(Staff::name) :
       CompletableFuture.completedFuture(message.sender());
     return futureSender.thenApply(sender ->
       assemblyMessageInformation(message, sender, teamWritten));

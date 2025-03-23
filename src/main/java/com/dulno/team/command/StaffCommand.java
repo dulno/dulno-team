@@ -4,9 +4,9 @@ import com.dulno.core.command.Command;
 import com.dulno.core.environment.DulnoEnvironment;
 import com.dulno.core.log.Log;
 import com.dulno.core.mail.Mail;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
-import com.dulno.team.member.TeamVerificationDatabaseTable;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
+import com.dulno.team.staff.StaffVerificationDatabaseTable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -16,24 +16,24 @@ import com.google.inject.name.Named;
 import java.util.List;
 import java.util.UUID;
 
-public final class TeamCommand extends Command {
-  private final TeamDatabaseTable teamDatabaseTable;
-  private final TeamVerificationDatabaseTable teamVerificationDatabaseTable;
+public final class StaffCommand extends Command {
+  private final StaffDatabaseTable staffDatabaseTable;
+  private final StaffVerificationDatabaseTable staffVerificationDatabaseTable;
   private final Mail verificationMail;
   private final DulnoEnvironment environment;
 
   @Inject
-  private TeamCommand(
-    Log log, TeamDatabaseTable teamDatabaseTable,
-    TeamVerificationDatabaseTable teamVerificationDatabaseTable,
+  private StaffCommand(
+    Log log, StaffDatabaseTable staffDatabaseTable,
+    StaffVerificationDatabaseTable staffVerificationDatabaseTable,
     @Named("verificationMail") Mail verificationMail,
     DulnoEnvironment environment
   ) {
-    super(log, "team", new String[] {"member", "members", "teammember",
-      "teammembers"}, new String[] {"add <name, email, group>", "remove <id>",
-      "change <id, group>", "find <id>", "all"});
-    this.teamDatabaseTable = teamDatabaseTable;
-    this.teamVerificationDatabaseTable = teamVerificationDatabaseTable;
+    super(log, "staff", new String[] {"team"},
+      new String[] {"add <name, email, group>", "remove <id>",
+        "change <id, group>", "find <id>", "all"});
+    this.staffDatabaseTable = staffDatabaseTable;
+    this.staffVerificationDatabaseTable = staffVerificationDatabaseTable;
     this.verificationMail = verificationMail;
     this.environment = environment;
   }
@@ -44,30 +44,30 @@ public final class TeamCommand extends Command {
       return false;
     }
     if (arguments[0].equalsIgnoreCase("add")) {
-      return addMember(arguments);
+      return addStaff(arguments);
     }
     if (arguments[0].equalsIgnoreCase("remove")) {
-      return removeMember(arguments);
+      return removeStaff(arguments);
     }
     if (arguments[0].equalsIgnoreCase("change")) {
-      return changeMemberGroup(arguments);
+      return changeStaffGroup(arguments);
     }
     if (arguments[0].equalsIgnoreCase("find")) {
-      return findMember(arguments);
+      return findStaff(arguments);
     }
     if (arguments[0].equalsIgnoreCase("all")) {
-      return allMembers(arguments);
+      return allStaffs(arguments);
     }
     return false;
   }
 
-  private boolean addMember(String[] arguments) {
+  private boolean addStaff(String[] arguments) {
     if (arguments.length != 4) {
       return false;
     }
-    teamDatabaseTable.generateAvailableMemberId().thenAccept(id ->
-      addMember(id, arguments[1], arguments[2], arguments[3]));
-    log().info("Team member has been added!");
+    staffDatabaseTable.generateAvailableStaffId().thenAccept(id ->
+      addStaff(id, arguments[1], arguments[2], arguments[3]));
+    log().info("Staff has been added!");
     return true;
   }
 
@@ -86,49 +86,49 @@ public final class TeamCommand extends Command {
     "\n" +
     "Welcome aboard!";
 
-  private void addMember(
+  private void addStaff(
     UUID id, String name, String email, String group
   ) {
     name = name.replaceAll("_", " ");
-    teamDatabaseTable.insertTeamMember(id, name, email, "", "en",
+    staffDatabaseTable.insertStaff(id, name, email, "", "en",
       group, Lists.newArrayList());
     var token = UUID.randomUUID().toString();
-    teamVerificationDatabaseTable.insertVerification(id, token);
+    staffVerificationDatabaseTable.insertVerification(id, token);
     var body = String.format(ONBOARDING_EMAIL_BODY, name,
       String.format(ONBOARDING_URL, environment.domain(), id.toString(), token));
     verificationMail.send(email, "en", ONBOARDING_EMAIL_TITLE, body);
   }
 
-  private boolean removeMember(String[] arguments) {
+  private boolean removeStaff(String[] arguments) {
     if (arguments.length != 2) {
       return false;
     }
-    teamDatabaseTable.deleteTeamMember(UUID.fromString(arguments[1]));
-    log().info("Team member has been removed!");
+    staffDatabaseTable.deleteStaff(UUID.fromString(arguments[1]));
+    log().info("Staff has been removed!");
     return true;
   }
 
-  private boolean changeMemberGroup(String[] arguments) {
+  private boolean changeStaffGroup(String[] arguments) {
     if (arguments.length != 3) {
       return false;
     }
-    teamDatabaseTable.changeTeamMemberGroup(UUID.fromString(arguments[1]),
+    staffDatabaseTable.changeStaffGroup(UUID.fromString(arguments[1]),
       arguments[2]);
-    log().info("Team member group has been changed!");
+    log().info("Staff group has been changed!");
     return true;
   }
 
-  private boolean findMember(String[] arguments) {
+  private boolean findStaff(String[] arguments) {
     if (arguments.length != 2) {
       return false;
     }
-    teamDatabaseTable.findTeamMember(UUID.fromString(arguments[1]))
-      .thenAccept(this::printMember);
+    staffDatabaseTable.findStaff(UUID.fromString(arguments[1]))
+      .thenAccept(this::printStaff);
     return true;
   }
 
-  private void printMember(TeamMember member) {
-    log().info("Team member:");
+  private void printStaff(Staff member) {
+    log().info("Staff:");
     log().info(" - Name: " + member.name());
     log().info(" - Email: " + member.email());
     log().info(" - Group: " + member.group());
@@ -138,25 +138,25 @@ public final class TeamCommand extends Command {
     }
   }
 
-  private boolean allMembers(String[] arguments) {
-    teamDatabaseTable.findAllTeamMembers().thenAccept(this::printMembers);
+  private boolean allStaffs(String[] arguments) {
+    staffDatabaseTable.findAllStaff().thenAccept(this::printStaff);
     return true;
   }
 
-  private void printMembers(List<TeamMember> members) {
-    var groups = HashMultimap.<String, TeamMember>create();
-    for (var member : members) {
-      groups.put(member.group(), member);
+  private void printStaff(List<Staff> staffList) {
+    var groups = HashMultimap.<String, Staff>create();
+    for (var staff : staffList) {
+      groups.put(staff.group(), staff);
     }
-    printMembers(groups);
+    printStaffs(groups);
   }
 
-  private void printMembers(Multimap<String, TeamMember> members) {
-    for (var key : members.keySet()) {
-      var groupMembers = members.get(key);
-      log().info(key + " (" + groupMembers.size() + ")");
-      for (var member : groupMembers) {
-        log().info(" - " + (member.name() + " (" + member.email() + ") (" + member.id() + ")"));
+  private void printStaffs(Multimap<String, Staff> staffMap) {
+    for (var key : staffMap.keySet()) {
+      var groupStaffList = staffMap.get(key);
+      log().info(key + " (" + groupStaffList.size() + ")");
+      for (var staff : groupStaffList) {
+        log().info(" - " + (staff.name() + " (" + staff.email() + ") (" + staff.id() + ")"));
       }
     }
   }

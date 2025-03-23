@@ -9,13 +9,13 @@ This documentation outlines the various permissions required across different ar
 2. [Tickets](#tickets)
 3. [Questions](#questions)
 4. [Sales](#sales)
-5. [Users](#users)
-6. [Entities](#entities)
+5. [Partners](#partners)
+6. [Members](#members)
 7. [Offers](#offers)
 8. [Maintenance](#maintenance)
 9. [Cluster](#cluster)
 10. [Groups](#groups)
-11. [Members](#members)
+11. [Staff](#staff)
 
 ---
 
@@ -65,33 +65,32 @@ The Sales section contains permissions required for listing, viewing, answering,
 
 ---
 
-## 5. Users
+## 5. Partners
 
-The Users section contains permissions required for searching and viewing users, viewing and resending user mails and viewing and closing user sessions.
+The Partners section contains permissions required for viewing and editing the bundle and payments of the partners.
 
-| Permission      | Description                                     |
-|-----------------|-------------------------------------------------|
-| `user.search`   | Allows searching for an user.                   |
-| `user.find`     | Allows viewing an individual user.              |
-| `mails.find`    | Allows viewing all mails send to the user.      |
-| `mail.resend`   | Allows resending a mail to the user.            |
-| `sessions.find` | Allows viewing all active sessions of the user. |
-| `session.close` | Allows closing an user session.                 |
+| Permission                   | Description                                            |
+|------------------------------|--------------------------------------------------------|
+| `partner.bundle.find`        | Allows viewing the bundle of a partner.                |
+| `partner.bundle.change`      | Allows changing the bundle of a partner.               |
+| `partner.bundle.delete`      | Allows deleting the bundle of a partner.               |
+| `partner.payments.find`      | Allows viewing the payments of a partner.              |
+| `partner.termination.status` | Allows retrieving the termination status of a partner. |
+| `partner.bundle.terminate`   | Allows terminate the bundle of a partner.              |
 
 ---
 
-## 6. Entities
+## 6. Members
 
-The Entities section contains permissions required for viewing and editing the bundle and payments of the entities.
+The Members section contains permissions required for viewing members, viewing and resending member mails and viewing and closing member sessions.
 
-| Permission                  | Description                                            |
-|-----------------------------|--------------------------------------------------------|
-| `entity.bundle.find`        | Allows viewing the bundle of an entity.                |
-| `entity.bundle.change`      | Allows changing the bundle of an entity.               |
-| `entity.bundle.delete`      | Allows deleting the bundle of an entity.               |
-| `entity.payments.find`      | Allows viewing the payments of an entity.              |
-| `entity.termination.status` | Allows retrieving the termination status of an entity. |
-| `entity.bundle.terminate`   | Allows terminate the bundle of an entity.              |
+| Permission             | Description                                       |
+|------------------------|---------------------------------------------------|
+| `member.find`          | Allows viewing an individual member.              |
+| `member.mails.find`    | Allows viewing all mails send to the member.      |
+| `member.mail.resend`   | Allows resending a mail to the member.            |
+| `member.sessions.find` | Allows viewing all active sessions of the member. |
+| `member.session.close` | Allows closing an member session.                 |
 
 ---
 
@@ -163,24 +162,24 @@ The Groups section contains permissions required for listing, adding, removing, 
 
 ---
 
-## 11. Members
+## 11. Staff
 
-The Members section contains permissions required for listing, adding, removing and editing groups.
+The Staff section contains permissions required for listing, adding, removing and editing staff.
 
-| Permission                  | Description                                 |
-|-----------------------------|---------------------------------------------|
-| `members.find`              | Allows listing all members.                 |
-| `members.add`               | Allows adding a new member.                 |
-| `members.remove`            | Allows removing a members.                  |
-| `members.group.change`      | Allows changing the group of a member.      |
-| `members.permission.add`    | Allows adding a permission to a member.     |
-| `members.permission.remove` | Allows removing a permission from a member. |
+| Permission                | Description                                |
+|---------------------------|--------------------------------------------|
+| `staff.find`              | Allows listing all staff.                  |
+| `staff.add`               | Allows adding a new staff.                 |
+| `staff.remove`            | Allows removing a staff.                   |
+| `staff.group.change`      | Allows changing the group of a staff.      |
+| `staff.permission.add`    | Allows adding a permission to a staff.     |
+| `staff.permission.remove` | Allows removing a permission from a staff. |
 
 ---
 
 ## Notes
 
 - **Fine-grained Access Control**: Depending on specific needs, a more detailed permission configuration may be required for certain roles.
-- **Least Privilege Principle**: Permissions should be granted according to the **principle of least privilege**, ensuring users have only the access they need to perform their tasks.
+- **Least Privilege Principle**: Permissions should be granted according to the **principle of least privilege**, ensuring staff have only the access they need to perform their tasks.
 
 ---

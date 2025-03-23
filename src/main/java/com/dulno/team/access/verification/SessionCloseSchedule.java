@@ -1,8 +1,8 @@
 package com.dulno.team.access.verification;
 
-import com.dulno.core.session.SessionStatus;
-import com.dulno.team.member.session.TeamSession;
-import com.dulno.team.member.session.TeamSessionDatabaseTable;
+import com.dulno.core.member.session.SessionStatus;
+import com.dulno.team.staff.session.StaffSession;
+import com.dulno.team.staff.session.StaffSessionDatabaseTable;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,14 +18,14 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public final class SessionCloseSchedule {
-  private final TeamSessionDatabaseTable sessionDatabaseTable;
+  private final StaffSessionDatabaseTable sessionDatabaseTable;
   private final Key refreshSecret;
   private final ScheduledExecutorService executorService =
     Executors.newScheduledThreadPool(1);
   private ScheduledFuture<?> scheduler;
 
   public SessionCloseSchedule(
-    TeamSessionDatabaseTable sessionDatabaseTable,
+    StaffSessionDatabaseTable sessionDatabaseTable,
     @Qualifier("panelRefreshKey") Key refreshSecret
   ) {
     this.sessionDatabaseTable = sessionDatabaseTable;
@@ -55,7 +55,7 @@ public final class SessionCloseSchedule {
       .thenAcceptAsync(this::closeExpiredSessions);
   }
 
-  private void closeExpiredSessions(List<TeamSession> sessions) {
+  private void closeExpiredSessions(List<StaffSession> sessions) {
     for (var session : sessions) {
       try {
         Jwts.parser()

@@ -2,16 +2,16 @@ package com.dulno.team.access.ticket;
 
 import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.core.iterator.AsyncIterator;
+import com.dulno.core.member.Member;
+import com.dulno.core.member.MemberDatabaseTable;
 import com.dulno.core.ticket.Ticket;
 import com.dulno.core.ticket.TicketDatabaseTable;
 import com.dulno.core.ticket.TicketMessage;
 import com.dulno.core.ticket.TicketMessageDatabaseTable;
-import com.dulno.core.user.User;
-import com.dulno.core.user.UserDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,18 +30,18 @@ import java.util.concurrent.CompletableFuture;
 public final class TicketInformationController extends TeamController {
   private final TicketDatabaseTable ticketDatabaseTable;
   private final TicketMessageDatabaseTable ticketMessageDatabaseTable;
-  private final UserDatabaseTable userDatabaseTable;
+  private final MemberDatabaseTable memberDatabaseTable;
 
   private TicketInformationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable, TicketDatabaseTable ticketDatabaseTable,
     TicketMessageDatabaseTable ticketMessageDatabaseTable,
-    UserDatabaseTable userDatabaseTable
+    MemberDatabaseTable memberDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.ticketDatabaseTable = ticketDatabaseTable;
     this.ticketMessageDatabaseTable = ticketMessageDatabaseTable;
-    this.userDatabaseTable = userDatabaseTable;
+    this.memberDatabaseTable = memberDatabaseTable;
   }
 
   @RequestMapping(path = "/tickets/pending/", method = RequestMethod.GET)
@@ -54,7 +54,7 @@ public final class TicketInformationController extends TeamController {
   public CompletableFuture<Map<String, Object>> findTickets(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "tickets.find")
+    return staffHasPermission(findStaffId(request), "tickets.find")
       .thenCompose(this::findTickets);
   }
 
@@ -94,7 +94,7 @@ public final class TicketInformationController extends TeamController {
     var body = DulnoRequestBody.of(payload, response);
     var futureResponse = new CompletableFuture<Map<String, Object>>();
     var ticketId = body.getUUID("ticket");
-    memberHasPermission(findMemberId(request), "ticket.find")
+    staffHasPermission(findStaffId(request), "ticket.find")
       .thenAccept(hasPermission -> ticketDatabaseTable.ticketExists(ticketId)
         .thenAccept(exists -> findTicket(ticketId, hasPermission, exists)
           .thenAccept(futureResponse::complete)));
@@ -117,14 +117,14 @@ public final class TicketInformationController extends TeamController {
     var futureResponse = new CompletableFuture<Map<String, Object>>();
     AsyncIterator.execute(ticket.messages(),
       ticketMessageDatabaseTable::findTicketMessage).thenAccept(
-      messages -> userDatabaseTable.findUser(ticket.creator()).thenAccept(
+      messages -> memberDatabaseTable.findMember(ticket.creator()).thenAccept(
         creator -> ticketInformation(ticket, creator, messages)
           .thenAccept(futureResponse::complete)));
     return futureResponse;
   }
 
   private CompletableFuture<Map<String, Object>> ticketInformation(
-    Ticket ticket, User creator, List<TicketMessage> messages
+    Ticket ticket, Member creator, List<TicketMessage> messages
   ) {
     var futureResponse = new CompletableFuture<Map<String, Object>>();
     AsyncIterator.execute(messages, this::messageInformation).thenAccept(
@@ -134,7 +134,7 @@ public final class TicketInformationController extends TeamController {
   }
 
   private Map<String, Object> assemblyTicketInformation(
-    Ticket ticket, User creator, List<Map<String, Object>> messageInformation
+    Ticket ticket, Member creator, List<Map<String, Object>> messageInformation
   ) {
     messageInformation.sort(Comparator.comparing(entry ->
       (long) entry.get("rawTime")));
@@ -155,8 +155,8 @@ public final class TicketInformationController extends TeamController {
   ) {
     var teamWritten = message.authorType().isTeam();
     var futureAuthorName = teamWritten ?
-      teamDatabaseTable().findTeamMember(message.author()).thenApply(TeamMember::name) :
-      userDatabaseTable.findUser(message.author()).thenApply(User::name);
+      staffDatabaseTable().findStaff(message.author()).thenApply(Staff::name) :
+      memberDatabaseTable.findMember(message.author()).thenApply(Member::name);
     return futureAuthorName.thenApply(author ->
       assemblyMessageInformation(message, author, teamWritten));
   }

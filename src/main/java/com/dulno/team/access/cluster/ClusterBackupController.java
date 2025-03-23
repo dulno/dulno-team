@@ -5,7 +5,7 @@ import com.dulno.core.error.ErrorRepository;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.cluster.ClusterConfiguration;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.jsonwebtoken.Jwts;
@@ -47,12 +47,12 @@ public final class ClusterBackupController extends TeamController {
   private final ClusterConfiguration clusterConfiguration;
 
   private ClusterBackupController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable, ErrorRepository errorRepository,
     CoreV1Api kubernetesCoreApi, Exec kubernetesExecutionApi,
     Copy kubernetesCopyApi, ClusterConfiguration clusterConfiguration
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.errorRepository = errorRepository;
     this.kubernetesCoreApi = kubernetesCoreApi;
     this.kubernetesExecutionApi = kubernetesExecutionApi;
@@ -64,7 +64,7 @@ public final class ClusterBackupController extends TeamController {
   public CompletableFuture<Map<String, Object>> findClusterBackups(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "cluster.backups")
+    return staffHasPermission(findStaffId(request), "cluster.backups")
       .thenApplyAsync(this::findClusterBackups);
   }
 
@@ -100,7 +100,7 @@ public final class ClusterBackupController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    return memberHasPermission(findMemberId(request), "cluster.backup.download")
+    return staffHasPermission(findStaffId(request), "cluster.backup.download")
       .thenAcceptAsync(hasPermission -> downloadClusterBackup(
         body.getLong("backup"), hasPermission, response));
   }
@@ -195,7 +195,7 @@ public final class ClusterBackupController extends TeamController {
   public CompletableFuture<Void> uploadClusterBackup(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "cluster.backup.upload")
+    return staffHasPermission(findStaffId(request), "cluster.backup.upload")
       .thenAcceptAsync(hasPermission -> uploadClusterBackup(request, hasPermission));
   }
 
@@ -286,12 +286,12 @@ public final class ClusterBackupController extends TeamController {
       response.setHeader("X-Accel-Buffering", "no");
     }
     var emitter = new SseEmitter(-1L);
-    var memberId = findMemberIdSecured(token);
-    if (memberId.isEmpty()) {
+    var staffId = findStaffIdSecured(token);
+    if (staffId.isEmpty()) {
       emitter.complete();
       return emitter;
     }
-    memberHasPermission(memberId.get(), "cluster.backup.restore")
+    staffHasPermission(staffId.get(), "cluster.backup.restore")
       .thenAcceptAsync(hasPermission -> restoreClusterBackup(backup,
         keyspaceFilter, tableFilter, keepMaintenance, hasPermission, emitter));
     return emitter;
@@ -534,7 +534,7 @@ public final class ClusterBackupController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    return memberHasPermission(findMemberId(request), "cluster.backup.delete")
+    return staffHasPermission(findStaffId(request), "cluster.backup.delete")
       .thenAcceptAsync(hasPermission -> deleteClusterBackup(
         body.getLong("backup"), hasPermission));
   }
@@ -608,7 +608,7 @@ public final class ClusterBackupController extends TeamController {
     }
   }
 
-  private Optional<UUID> findMemberIdSecured(String token) {
+  private Optional<UUID> findStaffIdSecured(String token) {
     try {
       return Optional.of(UUID.fromString(Jwts.parser().setSigningKey(secretKey())
         .build().parseClaimsJws(token).getPayload().get("id", String.class)));

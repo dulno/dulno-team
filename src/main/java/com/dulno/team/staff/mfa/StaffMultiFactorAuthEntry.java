@@ -1,4 +1,4 @@
-package com.dulno.team.member.mfa;
+package com.dulno.team.staff.mfa;
 
 import com.dulno.core.database.DatabaseRow;
 import lombok.Getter;
@@ -11,8 +11,8 @@ import java.util.UUID;
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor(staticName = "create")
-public final class TeamMultiFactorAuthUser {
-  public static TeamMultiFactorAuthUser of(DatabaseRow row) {
+public final class StaffMultiFactorAuthEntry {
+  public static StaffMultiFactorAuthEntry of(DatabaseRow row) {
     return create(row.findCell(0).uuidValue(), row.findCell(1).stringValue(),
       row.findCell(2).listValue(), row.findCell(3).booleanValue());
   }

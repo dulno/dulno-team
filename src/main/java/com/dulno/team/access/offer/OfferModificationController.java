@@ -6,15 +6,15 @@ import com.dulno.core.environment.DulnoEnvironment;
 import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.locale.Translation;
 import com.dulno.core.mail.Mail;
+import com.dulno.core.member.Member;
+import com.dulno.core.member.MemberDatabaseTable;
 import com.dulno.core.offer.Offer;
 import com.dulno.core.offer.OfferDatabaseTable;
 import com.dulno.core.offer.OfferStatus;
-import com.dulno.core.user.User;
-import com.dulno.core.user.UserDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
 import com.dulno.team.offer.TeamOfferConfiguration;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Maps;
 import com.stripe.StripeClient;
 import com.stripe.param.PriceCreateParams;
@@ -38,28 +38,28 @@ public final class OfferModificationController extends TeamController {
   private final BundlePresetRepository bundlePresetRepository;
   private final TeamOfferConfiguration teamOfferConfiguration;
   private final StripeClient stripeClient;
-  private final UserDatabaseTable userDatabaseTable;
+  private final MemberDatabaseTable memberDatabaseTable;
   private final Mail saleMail;
   private final Translation translation;
   private final ErrorRepository errorRepository;
   private final DulnoEnvironment environment;
 
   private OfferModificationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     OfferDatabaseTable offerDatabaseTable,
     BundlePresetRepository bundlePresetRepository,
     TeamOfferConfiguration teamOfferConfiguration, StripeClient stripeClient,
-    UserDatabaseTable userDatabaseTable,
+    MemberDatabaseTable memberDatabaseTable,
     @Qualifier("saleMail") Mail saleMail, Translation translation,
     ErrorRepository errorRepository, DulnoEnvironment environment
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.offerDatabaseTable = offerDatabaseTable;
     this.bundlePresetRepository = bundlePresetRepository;
     this.teamOfferConfiguration = teamOfferConfiguration;
     this.stripeClient = stripeClient;
-    this.userDatabaseTable = userDatabaseTable;
+    this.memberDatabaseTable = memberDatabaseTable;
     this.saleMail = saleMail;
     this.translation = translation;
     this.errorRepository = errorRepository;
@@ -72,7 +72,7 @@ public final class OfferModificationController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    return memberHasPermission(findMemberId(request), "offer.price.suggestion")
+    return staffHasPermission(findStaffId(request), "offer.price.suggestion")
       .thenApply(hasPermission -> createOfferPriceSuggestion(body, hasPermission));
   }
 
@@ -115,7 +115,7 @@ public final class OfferModificationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var targetId = body.getUUID("target");
-    memberHasPermission(findMemberId(request), "offer.create")
+    staffHasPermission(findStaffId(request), "offer.create")
       .thenAcceptAsync(hasPermission -> createOffer(targetId, body, hasPermission));
   }
 
@@ -157,23 +157,24 @@ public final class OfferModificationController extends TeamController {
       priceId, OfferStatus.PENDING, preset, runtime, price, workflowNumberLimit,
       workflowOperationLimit, processNumberLimit, databaseNumberLimit,
       databaseDataLimit, organizationMemberLimit, organizationTeamLimit));
-    userDatabaseTable.findUser(targetId).thenAccept(user -> sendOfferEmail(user, id));
+    memberDatabaseTable.findMember(targetId)
+      .thenAccept(member -> sendOfferEmail(member, id));
   }
 
   private static final String OFFER_URL = "https://%s/offer/%s/";
 
-  private void sendOfferEmail(User user, UUID offerId) {
-    var title = translation.translate(user, "offer.email.title");
-    var body = String.format(translation.translate(user, "offer.email.body"),
-      user.name(), String.format(OFFER_URL, environment.domain(),
+  private void sendOfferEmail(Member member, UUID offerId) {
+    var title = translation.translate(member, "offer.email.title");
+    var body = String.format(translation.translate(member, "offer.email.body"),
+      member.name(), String.format(OFFER_URL, environment.domain(),
         offerId.toString()));
-    saleMail.send(user, title, body);
+    saleMail.send(member, title, body);
   }
 
   private String createStripeOffer(double price) {
     try {
       var product = PriceCreateParams.ProductData.builder()
-        .setName("Manually compiled package")
+        .setName("Dulno")
         .build();
       var recurring = PriceCreateParams.Recurring.builder()
         .setInterval(PriceCreateParams.Recurring.Interval.MONTH)
@@ -272,7 +273,7 @@ public final class OfferModificationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var offerId = body.getUUID("offer");
-    memberHasPermission(findMemberId(request), "offer.withdraw")
+    staffHasPermission(findStaffId(request), "offer.withdraw")
       .thenAccept(hasPermission -> offerDatabaseTable.offerExists(offerId)
         .thenAccept(exists -> withdrawOffer(offerId, hasPermission, exists)));
   }

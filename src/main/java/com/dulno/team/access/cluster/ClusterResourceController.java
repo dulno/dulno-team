@@ -4,7 +4,7 @@ import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.dulno.team.telegraf.TelegrafConfiguration;
 import com.dulno.team.telegraf.TelegrafMetrics;
 import com.dulno.team.telegraf.TelegrafMetricsFactory;
@@ -36,13 +36,13 @@ public final class ClusterResourceController extends TeamController {
   private final TelegrafMetricsFactory telegrafMetricsFactory;
 
   private ClusterResourceController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable, ErrorRepository errorRepository,
     CoreV1Api kubernetesCoreApi, TelegrafConfiguration telegrafConfiguration,
     TelegrafRequestFactory telegrafRequestFactory,
     TelegrafMetricsFactory telegrafMetricsFactory
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.errorRepository = errorRepository;
     this.kubernetesCoreApi = kubernetesCoreApi;
     this.telegrafConfiguration = telegrafConfiguration;
@@ -54,7 +54,7 @@ public final class ClusterResourceController extends TeamController {
   public CompletableFuture<Map<String, Object>> findClusterResources(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "cluster.resources")
+    return staffHasPermission(findStaffId(request), "cluster.resources")
       .thenCompose(this::findClusterResources);
   }
 

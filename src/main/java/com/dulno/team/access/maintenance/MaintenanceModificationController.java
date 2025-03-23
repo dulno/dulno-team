@@ -6,7 +6,7 @@ import com.dulno.core.maintenance.MaintenanceDatabaseTable;
 import com.dulno.core.maintenance.MaintenanceStatus;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,11 +22,11 @@ public final class MaintenanceModificationController extends TeamController {
   private final MaintenanceDatabaseTable maintenanceDatabaseTable;
 
   private MaintenanceModificationController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     MaintenanceDatabaseTable maintenanceDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.maintenanceDatabaseTable = maintenanceDatabaseTable;
   }
 
@@ -36,7 +36,7 @@ public final class MaintenanceModificationController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    memberHasPermission(findMemberId(request), "maintenance.create")
+    staffHasPermission(findStaffId(request), "maintenance.create")
       .thenAccept(hasPermission -> createMaintenance(body.getString("description"),
         body.getLong("startTime"), body.getLong("duration"), hasPermission));
   }
@@ -59,7 +59,7 @@ public final class MaintenanceModificationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var maintenanceId = body.getUUID("maintenance");
-    memberHasPermission(findMemberId(request), "maintenance.finish")
+    staffHasPermission(findStaffId(request), "maintenance.finish")
       .thenAccept(hasPermission -> maintenanceDatabaseTable.maintenanceExists(maintenanceId)
         .thenAccept(exists -> finishMaintenance(maintenanceId, hasPermission, exists)));
   }
@@ -86,7 +86,7 @@ public final class MaintenanceModificationController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var maintenanceId = body.getUUID("maintenance");
-    memberHasPermission(findMemberId(request), "maintenance.delete")
+    staffHasPermission(findStaffId(request), "maintenance.delete")
       .thenAccept(hasPermission -> maintenanceDatabaseTable.maintenanceExists(maintenanceId)
         .thenAccept(exists -> deleteMaintenance(maintenanceId, hasPermission, exists)));
   }

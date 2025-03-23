@@ -6,7 +6,7 @@ import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.cluster.ClusterConfiguration;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Maps;
 import io.kubernetes.client.openapi.ApiCallback;
@@ -36,12 +36,12 @@ public final class ClusterUnitController extends TeamController {
   private final ClusterConfiguration clusterConfiguration;
 
   private ClusterUnitController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable, ErrorRepository errorRepository,
     CoreV1Api kubernetesCoreApi, AppsV1Api kubernetesAppsApi,
     BatchV1Api kubernetesBatchApi, ClusterConfiguration clusterConfiguration
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.errorRepository = errorRepository;
     this.kubernetesCoreApi = kubernetesCoreApi;
     this.kubernetesAppsApi = kubernetesAppsApi;
@@ -53,7 +53,7 @@ public final class ClusterUnitController extends TeamController {
   public CompletableFuture<Map<String, Object>> findClusterUnits(
     HttpServletRequest request
   ) {
-    return memberHasPermission(findMemberId(request), "cluster.units")
+    return staffHasPermission(findStaffId(request), "cluster.units")
       .thenCompose(this::findClusterUnits);
   }
 
@@ -299,7 +299,7 @@ public final class ClusterUnitController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    return memberHasPermission(findMemberId(request), "cluster.unit")
+    return staffHasPermission(findStaffId(request), "cluster.unit")
       .thenCompose(hasPermission ->
         findClusterUnit(body.getString("unitName"),
           body.getString("unitType"), hasPermission));
@@ -404,7 +404,7 @@ public final class ClusterUnitController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    memberHasPermission(findMemberId(request), "cluster.unit.restart")
+    staffHasPermission(findStaffId(request), "cluster.unit.restart")
       .thenAcceptAsync(hasPermission -> restartClusterUnit(
         body.getString("unitName"), body.getString("unitType"),
         hasPermission));
@@ -516,7 +516,7 @@ public final class ClusterUnitController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    memberHasPermission(findMemberId(request), "cluster.unit.scale")
+    staffHasPermission(findStaffId(request), "cluster.unit.scale")
       .thenAcceptAsync(hasPermission -> scaleClusterUnit(
         body.getString("unitName"), body.getString("unitType"),
         body.getInt("replicas"), hasPermission));
@@ -550,7 +550,7 @@ public final class ClusterUnitController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    return memberHasPermission(findMemberId(request), "cluster.pod")
+    return staffHasPermission(findStaffId(request), "cluster.pod")
       .thenCompose(hasPermission -> findClusterPod(body.getString("podName"),
         hasPermission));
   }
@@ -675,7 +675,7 @@ public final class ClusterUnitController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    memberHasPermission(findMemberId(request), "cluster.pod.delete")
+    staffHasPermission(findStaffId(request), "cluster.pod.delete")
       .thenAcceptAsync(hasPermission -> deleteClusterPod(body.getString("podName"),
         hasPermission));
   }

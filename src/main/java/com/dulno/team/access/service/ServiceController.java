@@ -3,7 +3,7 @@ package com.dulno.team.access.service;
 import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,10 +23,10 @@ public final class ServiceController extends TeamController {
   private final HttpClient httpClient = HttpClient.newHttpClient();
 
   private ServiceController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
   }
 
   @RequestMapping(path = "/service/available/", method = RequestMethod.POST)

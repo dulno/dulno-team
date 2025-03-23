@@ -1,10 +1,10 @@
 package com.dulno.team.access.verification;
 
-import com.dulno.core.user.UserDatabaseTable;
-import com.dulno.team.member.TeamEmailChangeDatabaseTable;
-import com.dulno.team.member.TeamPasswordResetDatabaseTable;
-import com.dulno.team.member.TeamVerificationDatabaseTable;
-import com.dulno.team.member.session.TeamSessionDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
+import com.dulno.team.staff.StaffEmailChangeDatabaseTable;
+import com.dulno.team.staff.StaffPasswordResetDatabaseTable;
+import com.dulno.team.staff.StaffVerificationDatabaseTable;
+import com.dulno.team.staff.session.StaffSessionDatabaseTable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.maxmind.geoip2.DatabaseReader;
@@ -16,25 +16,25 @@ import org.springframework.context.ConfigurableApplicationContext;
 @Singleton
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public class VerificationContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-  private final UserDatabaseTable userDatabaseTable;
-  private final TeamVerificationDatabaseTable teamVerificationDatabaseTable;
-  private final TeamEmailChangeDatabaseTable teamEmailChangeDatabaseTable;
-  private final TeamPasswordResetDatabaseTable teamPasswordResetDatabaseTable;
-  private final TeamSessionDatabaseTable teamSessionDatabaseTable;
+  private final StaffDatabaseTable staffDatabaseTable;
+  private final StaffVerificationDatabaseTable staffVerificationDatabaseTable;
+  private final StaffEmailChangeDatabaseTable staffEmailChangeDatabaseTable;
+  private final StaffPasswordResetDatabaseTable staffPasswordResetDatabaseTable;
+  private final StaffSessionDatabaseTable staffSessionDatabaseTable;
   private final DatabaseReader databaseReader;
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
     var beanFactory = applicationContext.getBeanFactory();
-    beanFactory.registerSingleton("userDatabaseTable", userDatabaseTable);
+    beanFactory.registerSingleton("staffDatabaseTable", staffDatabaseTable);
     beanFactory.registerSingleton("teamVerificationDatabaseTable",
-      teamVerificationDatabaseTable);
+      staffVerificationDatabaseTable);
     beanFactory.registerSingleton("teamEmailChangeDatabaseTable",
-      teamEmailChangeDatabaseTable);
+      staffEmailChangeDatabaseTable);
     beanFactory.registerSingleton("teamPasswordResetDatabaseTable",
-      teamPasswordResetDatabaseTable);
+      staffPasswordResetDatabaseTable);
     beanFactory.registerSingleton("teamSessionDatabaseTable",
-      teamSessionDatabaseTable);
+      staffSessionDatabaseTable);
     beanFactory.registerSingleton("databaseReader", databaseReader);
   }
 }

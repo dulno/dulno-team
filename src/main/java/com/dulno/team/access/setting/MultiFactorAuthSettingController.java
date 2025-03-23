@@ -4,38 +4,38 @@ import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.core.hashing.Hashing;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
-import com.dulno.team.member.mfa.TeamMultiFactorAuthDatabaseTable;
-import com.dulno.team.member.mfa.TeamMultiFactorAuthFactory;
-import com.dulno.team.member.mfa.TeamMultiFactorAuthUser;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
+import com.dulno.team.staff.mfa.StaffMultiFactorAuthDatabaseTable;
+import com.dulno.team.staff.mfa.StaffMultiFactorAuthEntry;
+import com.dulno.team.staff.mfa.StaffMultiFactorAuthFactory;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Key;
+import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
 public final class MultiFactorAuthSettingController extends TeamController {
-  private final TeamMultiFactorAuthDatabaseTable multiFactorAuthDatabaseTable;
-  private final TeamMultiFactorAuthFactory multiFactorAuthFactory;
+  private final StaffMultiFactorAuthDatabaseTable multiFactorAuthDatabaseTable;
+  private final StaffMultiFactorAuthFactory multiFactorAuthFactory;
   private final Hashing hashing;
 
   private MultiFactorAuthSettingController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
-    TeamMultiFactorAuthDatabaseTable multiFactorAuthDatabaseTable,
-    TeamMultiFactorAuthFactory multiFactorAuthFactory, Hashing hashing
+    StaffMultiFactorAuthDatabaseTable multiFactorAuthDatabaseTable,
+    StaffMultiFactorAuthFactory multiFactorAuthFactory, Hashing hashing
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.multiFactorAuthDatabaseTable = multiFactorAuthDatabaseTable;
     this.multiFactorAuthFactory = multiFactorAuthFactory;
     this.hashing = hashing;
@@ -45,7 +45,7 @@ public final class MultiFactorAuthSettingController extends TeamController {
   public CompletableFuture<Map<String, Object>> multiFactorAuth(
     HttpServletRequest request
   ) {
-    return multiFactorAuthDatabaseTable.authExists(findMemberId(request))
+    return multiFactorAuthDatabaseTable.authExists(findStaffId(request))
       .thenApply(exists -> Map.of("enabled", exists));
   }
 
@@ -55,31 +55,31 @@ public final class MultiFactorAuthSettingController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    return findMember(request).thenCompose(member -> switchMultiFactorAuth(member,
+    return findStaff(request).thenCompose(staff -> switchMultiFactorAuth(staff,
       body.getString("password")));
   }
 
   private CompletableFuture<Map<String, Object>> switchMultiFactorAuth(
-    TeamMember member, String password
+    Staff staff, String password
   ) {
-    if (!hashing.matches(password, member.passwordHash())) {
+    if (!hashing.matches(password, staff.passwordHash())) {
       return CompletableFuture.completedFuture(Map.of("success", false));
     }
-    return multiFactorAuthDatabaseTable.authExists(member.id())
-      .thenCompose(exists -> switchMultiFactorAuth(member.id(), exists));
+    return multiFactorAuthDatabaseTable.authExists(staff.id())
+      .thenCompose(exists -> switchMultiFactorAuth(staff.id(), exists));
   }
 
   private CompletableFuture<Map<String, Object>> switchMultiFactorAuth(
-    UUID memberId, boolean multiFactorAuthEnabled
+    UUID staffId, boolean multiFactorAuthEnabled
   ) {
     if (multiFactorAuthEnabled) {
-      multiFactorAuthDatabaseTable.deleteAuth(memberId);
+      multiFactorAuthDatabaseTable.deleteAuth(staffId);
       return CompletableFuture.completedFuture(Maps.newHashMap());
     }
-    var auth = multiFactorAuthFactory.createAuth(memberId);
+    var auth = multiFactorAuthFactory.createAuth(staffId);
     return auth.setup().thenCompose(value -> auth.generateQRCode()
-      .thenApply(Base64::encodeBase64String)
-      .thenCompose(qrCodeEncoded -> multiFactorAuthDatabaseTable.findAuth(memberId)
+      .thenApply(Base64.getEncoder()::encode)
+      .thenCompose(qrCodeEncoded -> multiFactorAuthDatabaseTable.findAuth(staffId)
         .thenApply(authUser -> Map.of("qrCode", qrCodeEncoded, "secret",
           authUser.secret(), "recoveryCodes", authUser.recoveryCodes()))));
   }
@@ -90,32 +90,32 @@ public final class MultiFactorAuthSettingController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var memberId = findMemberId(request);
-    return multiFactorAuthDatabaseTable.authExists(memberId)
-      .thenCompose(exists -> confirmMultiFactorAuth(memberId,
+    var staffId = findStaffId(request);
+    return multiFactorAuthDatabaseTable.authExists(staffId)
+      .thenCompose(exists -> confirmMultiFactorAuth(staffId,
         body.getString("code"), exists));
   }
 
   private CompletableFuture<Map<String, Object>> confirmMultiFactorAuth(
-    UUID memberId, String code, boolean multiFactorEnabled
+    UUID staffId, String code, boolean multiFactorEnabled
   ) {
     if (!multiFactorEnabled) {
       return CompletableFuture.completedFuture(Map.of("success", false));
     }
-    return multiFactorAuthDatabaseTable.findAuth(memberId)
-      .thenCompose(auth -> confirmMultiFactorAuth(memberId, code, auth));
+    return multiFactorAuthDatabaseTable.findAuth(staffId)
+      .thenCompose(auth -> confirmMultiFactorAuth(staffId, code, auth));
   }
 
   private CompletableFuture<Map<String, Object>> confirmMultiFactorAuth(
-    UUID memberId, String code, TeamMultiFactorAuthUser auth
+    UUID staffId, String code, StaffMultiFactorAuthEntry auth
   ) {
     if (auth.confirmed()) {
       return CompletableFuture.completedFuture(Map.of("success", false));
     }
-    return multiFactorAuthFactory.createAuth(memberId).verifyCode(code)
+    return multiFactorAuthFactory.createAuth(staffId).verifyCode(code)
       .thenCompose(verified -> !verified ?
         CompletableFuture.completedFuture(Map.of("success", false)) :
-        multiFactorAuthDatabaseTable.confirmAuth(memberId)
+        multiFactorAuthDatabaseTable.confirmAuth(staffId)
           .thenApply(value -> Map.of("success", true)));
   }
 
@@ -123,18 +123,18 @@ public final class MultiFactorAuthSettingController extends TeamController {
   public CompletableFuture<Map<String, Object>> isMultiFactorAuthConfirmed(
     HttpServletRequest request
   ) {
-    var memberId = findMemberId(request);
-    return multiFactorAuthDatabaseTable.authExists(memberId)
-      .thenCompose(exists -> isMultiFactorAuthConfirmed(memberId, exists));
+    var staffId = findStaffId(request);
+    return multiFactorAuthDatabaseTable.authExists(staffId)
+      .thenCompose(exists -> isMultiFactorAuthConfirmed(staffId, exists));
   }
 
   private CompletableFuture<Map<String, Object>> isMultiFactorAuthConfirmed(
-    UUID memberId, boolean multiFactorEnabled
+    UUID staffId, boolean multiFactorEnabled
   ) {
     if (!multiFactorEnabled) {
       return CompletableFuture.completedFuture(Map.of("success", false));
     }
-    return multiFactorAuthDatabaseTable.findAuth(memberId)
+    return multiFactorAuthDatabaseTable.findAuth(staffId)
       .thenApply(auth -> Map.of("success", true, "confirmed", auth.confirmed()));
   }
 }

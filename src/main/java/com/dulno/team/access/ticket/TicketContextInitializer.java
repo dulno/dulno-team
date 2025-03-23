@@ -2,7 +2,6 @@ package com.dulno.team.access.ticket;
 
 import com.dulno.core.ticket.TicketDatabaseTable;
 import com.dulno.core.ticket.TicketMessageDatabaseTable;
-import com.dulno.team.member.TeamWorkDatabaseTable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
@@ -15,7 +14,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 public class TicketContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
   private final TicketDatabaseTable ticketDatabaseTable;
   private final TicketMessageDatabaseTable ticketMessageDatabaseTable;
-  private final TeamWorkDatabaseTable teamWorkDatabaseTable;
 
   @Override
   public void initialize(ConfigurableApplicationContext applicationContext) {
@@ -23,6 +21,5 @@ public class TicketContextInitializer implements ApplicationContextInitializer<C
     beanFactory.registerSingleton("ticketDatabaseTable", ticketDatabaseTable);
     beanFactory.registerSingleton("ticketMessageDatabaseTable",
       ticketMessageDatabaseTable);
-    beanFactory.registerSingleton("teamWorkDatabaseTable", teamWorkDatabaseTable);
   }
 }

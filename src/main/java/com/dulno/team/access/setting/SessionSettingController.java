@@ -1,12 +1,12 @@
 package com.dulno.team.access.setting;
 
 import com.dulno.core.access.DulnoRequestBody;
-import com.dulno.core.session.SessionStatus;
+import com.dulno.core.member.session.SessionStatus;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.session.TeamSession;
-import com.dulno.team.member.session.TeamSessionDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
+import com.dulno.team.staff.session.StaffSession;
+import com.dulno.team.staff.session.StaffSessionDatabaseTable;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,14 +22,14 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 public final class SessionSettingController extends TeamController {
-  private final TeamSessionDatabaseTable sessionDatabaseTable;
+  private final StaffSessionDatabaseTable sessionDatabaseTable;
 
   private SessionSettingController(
-    Key secretKey, TeamDatabaseTable teamDatabaseTable,
+    Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
-    TeamSessionDatabaseTable sessionDatabaseTable
+    StaffSessionDatabaseTable sessionDatabaseTable
   ) {
-    super(secretKey, teamDatabaseTable, groupDatabaseTable);
+    super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.sessionDatabaseTable = sessionDatabaseTable;
   }
 
@@ -37,15 +37,15 @@ public final class SessionSettingController extends TeamController {
   public CompletableFuture<Map<String, Object>> sessions(
     HttpServletRequest request
   ) {
-    var memberSessionId = findSessionId(request);
-    return sessionDatabaseTable.findSessionsOfMemberByStatus(
-      findMemberId(request), SessionStatus.ACTIVE)
+    var staffSessionId = findSessionId(request);
+    return sessionDatabaseTable.findSessionsOfStaffByStatus(
+      findStaffId(request), SessionStatus.ACTIVE)
       .thenApply(sessions -> Map.of("sessions", sessions.stream().map(session ->
-        assemblySessionInformation(memberSessionId, session)).toList()));
+        assemblySessionInformation(staffSessionId, session)).toList()));
   }
 
   private Map<String, Object> assemblySessionInformation(
-    UUID memberSessionId, TeamSession session
+    UUID staffSessionId, StaffSession session
   ) {
     var information = Maps.<String, Object>newHashMap();
     information.put("id", session.id());
@@ -54,7 +54,7 @@ public final class SessionSettingController extends TeamController {
     information.put("city", session.city());
     information.put("openTime", session.openTime());
     information.put("status", session.status());
-    information.put("isCurrent", memberSessionId.equals(session.id()));
+    information.put("isCurrent", staffSessionId.equals(session.id()));
     return information;
   }
 
@@ -65,27 +65,27 @@ public final class SessionSettingController extends TeamController {
   ) {
     var body = DulnoRequestBody.of(payload, response);
     var sessionId = body.getUUID("session");
-    var memberId = findMemberId(request);
-    var memberSessionId = findSessionId(request);
+    var staffId = findStaffId(request);
+    var staffSessionId = findSessionId(request);
     sessionDatabaseTable.sessionExists(sessionId)
-      .thenAccept(exists -> closeSession(sessionId, memberId, memberSessionId, exists));
+      .thenAccept(exists -> closeSession(sessionId, staffId, staffSessionId, exists));
   }
 
   private void closeSession(
-    UUID sessionId, UUID memberId, UUID memberSessionId, boolean sessionExists
+    UUID sessionId, UUID staffId, UUID staffSessionId, boolean sessionExists
   ) {
     if (!sessionExists) {
       return;
     }
     sessionDatabaseTable.findSession(sessionId)
-      .thenAccept(session -> closeSession(session, memberId, memberSessionId));
+      .thenAccept(session -> closeSession(session, staffId, staffSessionId));
   }
 
-  private void closeSession(TeamSession session, UUID memberId, UUID memberSessionId) {
-    if (!session.memberId().equals(memberId)) {
+  private void closeSession(StaffSession session, UUID staffId, UUID staffSessionId) {
+    if (!session.staffId().equals(staffId)) {
       return;
     }
-    if (memberSessionId.equals(session.id())) {
+    if (staffSessionId.equals(session.id())) {
       return;
     }
     sessionDatabaseTable.closeSession(session.id());

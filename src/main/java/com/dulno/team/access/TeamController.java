@@ -1,8 +1,8 @@
 package com.dulno.team.access;
 
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.member.TeamDatabaseTable;
-import com.dulno.team.member.TeamMember;
+import com.dulno.team.staff.Staff;
+import com.dulno.team.staff.StaffDatabaseTable;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
@@ -19,36 +19,36 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class TeamController {
   private final Key secretKey;
-  private final TeamDatabaseTable teamDatabaseTable;
+  private final StaffDatabaseTable staffDatabaseTable;
   private final GroupDatabaseTable groupDatabaseTable;
 
   /**
-   * Is used to find the id of the member that send the request
+   * Is used to find the id of the staff that send the request
    * @param request The request
-   * @return The id of the member
+   * @return The id of the staff
    */
-  protected UUID findMemberId(HttpServletRequest request) {
-    return findMemberId(findApiKey(request));
+  protected UUID findStaffId(HttpServletRequest request) {
+    return findStaffId(findApiKey(request));
   }
 
   /**
-   * Is used to find the id of a member inside an api key
+   * Is used to find the id of a staff inside an api key
    * @param apiKey The api key
-   * @return The id of the member
+   * @return The id of the staff
    */
-  protected UUID findMemberId(String apiKey) {
+  protected UUID findStaffId(String apiKey) {
     return UUID.fromString(Jwts.parser().setSigningKey(secretKey).build()
       .parseClaimsJws(apiKey).getPayload().get("id", String.class));
   }
 
   /**
-   * Is used to find the member that send the request
+   * Is used to find the staff that send the request
    * @param request The request
-   * @return A future that contains the member
+   * @return A future that contains the staff
    */
-  protected CompletableFuture<TeamMember> findMember(HttpServletRequest request) {
+  protected CompletableFuture<Staff> findStaff(HttpServletRequest request) {
     var apiKey = request.getHeader("Authorization").replace("Bearer ", "");
-    return teamDatabaseTable.findTeamMember(findMemberId(apiKey));
+    return staffDatabaseTable.findStaff(findStaffId(apiKey));
   }
 
   /**
@@ -97,27 +97,27 @@ public class TeamController {
   }
 
   /**
-   * Checks whether a team member has a certain permission
-   * @param memberId The member
+   * Checks whether a team staff has a certain permission
+   * @param staffId The staff
    * @param permission The permission to be checked
-   * @return Is true when member has permission, otherwise false
+   * @return Is true when staff has permission, otherwise false
    */
-  protected CompletableFuture<Boolean> memberHasPermission(
-    UUID memberId, String permission
+  protected CompletableFuture<Boolean> staffHasPermission(
+    UUID staffId, String permission
   ) {
     var completableFuture = new CompletableFuture<Boolean>();
-    teamDatabaseTable.findTeamMember(memberId).thenAccept(member ->
-      memberHasPermission(member, permission).thenAccept(completableFuture::complete));
+    staffDatabaseTable.findStaff(staffId).thenAccept(staff ->
+      staffHasPermission(staff, permission).thenAccept(completableFuture::complete));
     return completableFuture;
   }
 
-  private CompletableFuture<Boolean> memberHasPermission(
-    TeamMember member, String permission
+  private CompletableFuture<Boolean> staffHasPermission(
+    Staff staff, String permission
   ) {
-    if (member.permissions().contains(permission) || member.permissions().contains("*")) {
+    if (staff.permissions().contains(permission) || staff.permissions().contains("*")) {
       return CompletableFuture.completedFuture(true);
     }
-    return groupDatabaseTable.findGroup(member.group()).thenApply(group ->
+    return groupDatabaseTable.findGroup(staff.group()).thenApply(group ->
       group.permissions().contains(permission) || group.permissions().contains("*"));
   }
 }

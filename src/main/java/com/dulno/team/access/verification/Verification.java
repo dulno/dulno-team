@@ -1,7 +1,7 @@
 package com.dulno.team.access.verification;
 
 import com.dulno.core.hashing.Hashing;
-import com.dulno.team.member.TeamDatabaseTable;
+import com.dulno.team.staff.StaffDatabaseTable;
 import io.jsonwebtoken.Jwts;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor(staticName = "create")
 @AllArgsConstructor(staticName = "create")
 public final class Verification {
-  private final TeamDatabaseTable teamDatabaseTable;
+  private final StaffDatabaseTable staffDatabaseTable;
   private final Key panelSecret;
   private final Key refreshSecret;
   private final Hashing hashing;
@@ -33,7 +33,7 @@ public final class Verification {
       futureResponse.complete(false);
       return futureResponse;
     }
-    teamDatabaseTable.teamMemberExists(email).thenAccept(exists ->
+    staffDatabaseTable.staffExists(email).thenAccept(exists ->
       isAuthenticated(exists).thenAccept(futureResponse::complete));
     return futureResponse;
   }
@@ -44,17 +44,17 @@ public final class Verification {
       futureResponse.complete(false);
       return futureResponse;
     }
-    teamDatabaseTable.findTeamMember(email).thenAccept(member ->
-      futureResponse.complete(hashing.matches(password, member.passwordHash())));
+    staffDatabaseTable.findStaff(email).thenAccept(staff ->
+      futureResponse.complete(hashing.matches(password, staff.passwordHash())));
     return futureResponse;
   }
 
   private static final long PANEL_EXPIRATION_TIME = 1000L * 60 * 10;
 
-  public String generatePanelApiKey(UUID memberId, UUID sessionId) {
+  public String generatePanelApiKey(UUID staffId, UUID sessionId) {
     var expiration = new Date(System.currentTimeMillis() + PANEL_EXPIRATION_TIME);
     return Jwts.builder().expiration(expiration)
-      .claim("id", memberId.toString())
+      .claim("id", staffId.toString())
       .claim("session", sessionId.toString())
       .signWith(panelSecret)
       .compact();
@@ -62,10 +62,10 @@ public final class Verification {
 
   private static final long REFRESH_EXPIRATION_TIME = 1000L * 60 * 60 * 24;
 
-  public String generateRefreshToken(UUID memberId, UUID sessionId) {
+  public String generateRefreshToken(UUID staffId, UUID sessionId) {
     var expiration = new Date(System.currentTimeMillis() + REFRESH_EXPIRATION_TIME);
     return Jwts.builder().expiration(expiration)
-      .claim("id", memberId.toString())
+      .claim("id", staffId.toString())
       .claim("session", sessionId.toString())
       .signWith(refreshSecret)
       .compact();

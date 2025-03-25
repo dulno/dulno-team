@@ -83,7 +83,7 @@ public final class TicketModificationController extends TeamController {
     Member creator
   ) {
     ticket.addMessage(messageId);
-    ticket.resetExpirationTime();
+    ticket.resetExpiration();
     ticket.updateLastMessageSeen(false);
     ticketDatabaseTable.deleteTicket(ticket.id())
       .thenAccept(deleteValue -> ticketDatabaseTable.insertTicket(ticket)

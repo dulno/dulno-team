@@ -88,7 +88,7 @@ public final class SaleModificationController extends TeamController {
   private void answerSale(
     Staff staff, Sale sale, String message, UUID messageId
   ) {
-    sale.resetExpirationTime();
+    sale.resetExpiration();
     saleDatabaseTable.updateSale(sale);
     saleMail.send(sale.sender(), "Re: " + sale.title(), message,
       "text/html; charset=utf-8")

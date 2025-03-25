@@ -73,7 +73,7 @@ public final class MemberInformationController extends TeamController {
     information.put("email", member.email());
     information.put("name", member.name());
     information.put("language", member.language());
-    information.put("joinDate", member.joinDate());
+    information.put("joinDate", member.accession());
     var ticketInformation = Lists.<Map<String, Object>>newArrayList();
     for (var ticket : tickets) {
       ticketInformation.add(Map.of("id", ticket.id(),

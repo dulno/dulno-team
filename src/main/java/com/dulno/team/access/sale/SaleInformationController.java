@@ -218,7 +218,7 @@ public final class SaleInformationController extends TeamController {
   private void saveSaleMail(
     Sale parentMail, List<MailMessage> inbox, Runnable futureResponse
   ) {
-    parentMail.disableExpirationTime();
+    parentMail.disableExpiration();
     saleDatabaseTable.updateSale(parentMail).thenAccept(value ->
       saveNextSale(inbox, futureResponse));
   }
@@ -249,11 +249,11 @@ public final class SaleInformationController extends TeamController {
     var sortedOut = Lists.<Sale>newArrayList();
     var currentTime = System.currentTimeMillis();
     for (var sale : sales) {
-      if (sale.expirationTime() == -1) {
+      if (sale.expiration() == -1) {
         continue;
       }
       sortedOut.add(sale);
-      if (currentTime >= sale.expirationTime()) {
+      if (currentTime >= sale.expiration()) {
         saleDatabaseTable.updateSaleStatus(sale.id(), Sale.Status.CLOSED);
       }
     }

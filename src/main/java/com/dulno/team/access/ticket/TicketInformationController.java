@@ -74,11 +74,11 @@ public final class TicketInformationController extends TeamController {
     var sortedOut = Lists.<Ticket>newArrayList();
     var currentTime = System.currentTimeMillis();
     for (var ticket : tickets) {
-      if (ticket.expirationTime() == -1) {
+      if (ticket.expiration() == -1) {
         continue;
       }
       sortedOut.add(ticket);
-      if (currentTime >= ticket.expirationTime()) {
+      if (currentTime >= ticket.expiration()) {
         ticketDatabaseTable.updateTicketStatus(ticket.id(), Ticket.Status.CLOSED);
       }
     }

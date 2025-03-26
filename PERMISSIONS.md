@@ -71,6 +71,8 @@ The Partners section contains permissions required for viewing and editing the b
 
 | Permission                   | Description                                            |
 |------------------------------|--------------------------------------------------------|
+| `partners.find`              | Allows listing all partners.                           |
+| `partner.find`               | Allows viewing an individual partner.                  |
 | `partner.bundle.find`        | Allows viewing the bundle of a partner.                |
 | `partner.bundle.change`      | Allows changing the bundle of a partner.               |
 | `partner.bundle.delete`      | Allows deleting the bundle of a partner.               |

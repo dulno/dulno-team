@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Key;
-import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -68,28 +67,18 @@ public final class PartnerBundleController extends TeamController {
     var information = Maps.<String, Object>newHashMap();
     information.put("found", true);
     information.put("type", bundle.bundleType().toString());
-    information.put("class", bundle.bundleClass().toString());
     information.put("runtime", bundle.bundleRuntime().toString());
     information.put("price", bundle.price());
     information.put("expiration", bundle.expiration());
-    information.put("workflowAccess", bundle.workflowAccess());
-    information.put("workflowNumberLimit", bundle.workflowNumberLimit());
-    information.put("workflowOperationLimit", bundle.workflowOperationLimit());
-    information.put("workflowTemplateAccess", bundle.workflowTemplateAccess());
-    information.put("processAccess", bundle.processAccess());
-    information.put("processNumberLimit", bundle.processNumberLimit());
-    information.put("databaseAccess", bundle.databaseAccess());
-    information.put("databaseNumberLimit", bundle.databaseNumberLimit());
-    information.put("databaseDataLimit", new DecimalFormat("#.#").format(
-      bundle.databaseDataLimit()));
-    information.put("webhookAccess", bundle.webhookAccess());
-    information.put("webhookNumberLimit", bundle.webhookNumberLimit());
-    information.put("organizationAccess", bundle.organizationAccess());
-    information.put("organizationMemberLimit", bundle.organizationMemberLimit());
-    information.put("organizationTeamLimit", bundle.organizationTeamLimit());
-    information.put("deviceAccess", bundle.deviceAccess());
-    information.put("accountsAccess", bundle.accountsAccess());
-    information.put("accountsNumberLimit", bundle.accountsNumberLimit());
+    information.put("collectionCardAccess", bundle.collectionCardAccess());
+    information.put("valueCardAccess", bundle.valueCardAccess());
+    information.put("memberCardAccess", bundle.memberCardAccess());
+    information.put("analysisAccess", bundle.analysisAccess());
+    information.put("actionAccess", bundle.actionAccess());
+    information.put("notificationAccess", bundle.notificationAccess());
+    information.put("portalAccess", bundle.portalAccess());
+    information.put("multiPortalUserAccess", bundle.multiPortalUserAccess());
+    information.put("portalPermissionAccess", bundle.portalPermissionAccess());
     return information;
   }
 
@@ -116,31 +105,15 @@ public final class PartnerBundleController extends TeamController {
     var expiration = runtime.isUnbound() ? System.currentTimeMillis() +
       body.getLong("expiration") : -1;
     var price = findBundlePrice(body, preset, runtime);
-    var workflowNumberLimit = findBundleWorkflowNumberLimit(body, preset);
-    var workflowOperationLimit = findBundleWorkflowOperationLimit(body, preset);
-    var processNumberLimit = findBundleProcessNumberLimit(body, preset);
-    var databaseNumberLimit = findBundleDatabaseNumberLimit(body, preset);
-    var databaseDataLimit = findBundleDatabaseDataLimit(body, preset);
-    var isOrganization = preset.bundleType().isTeam() ||
-      preset.bundleType().isEnterprise();
-    var organizationMemberLimit = isOrganization ?
-      findBundleOrganizationMemberLimit(body, preset) : 0;
-    var organizationTeamLimit = isOrganization ?
-      findBundleOrganizationTeamLimit(body, preset) : 0;
-    bundleDatabaseTable.deleteBundle(partnerId).thenAccept(value ->
-      bundleDatabaseTable.insertBundle(Bundle.of(partnerId,
-        preset, runtime, expiration, price, workflowNumberLimit,
-        workflowOperationLimit, processNumberLimit, databaseNumberLimit,
-        databaseDataLimit, organizationMemberLimit, organizationTeamLimit)));
+    bundleDatabaseTable.deleteBundle(partnerId)
+      .thenAccept(value -> bundleDatabaseTable.insertBundle(Bundle.of(partnerId,
+        preset, runtime, price, expiration)));
     terminationDatabaseTable.deleteTermination(partnerId);
   }
 
   private double findBundlePrice(
     DulnoRequestBody body, BundlePreset preset, BundleRuntime runtime
   ) {
-    if (runtime.isInfinite()) {
-      return 0;
-    }
     if (!body.has("price")) {
       return preset.hasPrice() ? (runtime.isMonthly() ?
         preset.monthlyPrice() : preset.yearlyPrice()) : 0;
@@ -148,77 +121,9 @@ public final class PartnerBundleController extends TeamController {
     return body.getDouble("price");
   }
 
-  private long findBundleWorkflowNumberLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("workflowNumberLimit")) {
-      return preset.workflowNumberLimit();
-    }
-    return body.getLong("workflowNumberLimit");
-  }
-
-  private long findBundleWorkflowOperationLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("workflowOperationLimit")) {
-      return preset.hasWorkflowOperationLimit() ?
-        preset.workflowOperationLimit() : 0;
-    }
-    return body.getLong("workflowOperationLimit");
-  }
-
-  private long findBundleProcessNumberLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("processNumberLimit")) {
-      return preset.processNumberLimit();
-    }
-    return body.getLong("processNumberLimit");
-  }
-
-  private long findBundleDatabaseNumberLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("databaseNumberLimit")) {
-      return preset.databaseNumberLimit();
-    }
-    return body.getLong("databaseNumberLimit");
-  }
-
-  private double findBundleDatabaseDataLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("databaseDataLimit")) {
-      return preset.databaseDataLimit();
-    }
-    return body.getDouble("databaseDataLimit");
-  }
-
-  private long findBundleOrganizationMemberLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("organizationMemberLimit")) {
-      return preset.organizationMemberLimit();
-    }
-    return body.getLong("organizationMemberLimit");
-  }
-
-  private long findBundleOrganizationTeamLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("organizationTeamLimit")) {
-      return preset.organizationTeamLimit();
-    }
-    return body.getLong("organizationTeamLimit");
-  }
-
   private BundlePreset findBundlePreset(DulnoRequestBody body) {
-    var bundleType = BundleType.valueOf(body.getString("type"));
-    if (bundleType.isTrial() || bundleType.isEnterprise()) {
-      return bundlePresetRepository.findPreset(bundleType).get();
-    }
-    var bundleClass = BundleClass.valueOf(body.getString("class"));
-    return bundlePresetRepository.findPreset(bundleType, bundleClass).get();
+    return bundlePresetRepository.findPreset(
+      BundleType.valueOf(body.getString("type"))).get();
   }
 
   @RequestMapping(path = "/partner/bundle/delete/", method = RequestMethod.POST)

@@ -38,20 +38,20 @@ public final class OfferInformationController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var targetId = body.getUUID("target");
+    var partnerId = body.getUUID("partner");
     return staffHasPermission(findStaffId(request), "offers.find")
-      .thenCompose(hasPermission -> findOffers(targetId, hasPermission));
+      .thenCompose(hasPermission -> findOffers(partnerId, hasPermission));
   }
 
   private CompletableFuture<Map<String, Object>> findOffers(
-    UUID targetId, boolean hasPermission
+    UUID partnerId, boolean hasPermission
   ) {
     if (!hasPermission) {
       return CompletableFuture.completedFuture(Maps.newHashMap());
     }
-    return offerDatabaseTable.findOffersByTarget(targetId)
-      .thenApply(offers -> Map.of("offers",
-        offers.stream().map(this::assemblyOfferInformation).toList()));
+    return offerDatabaseTable.findOffersByPartner(partnerId)
+      .thenApply(offers -> Map.of("offers", offers.stream()
+        .map(this::assemblyOfferInformation).toList()));
   }
 
   @RequestMapping(path = "/offer/find/", method = RequestMethod.POST)
@@ -81,27 +81,17 @@ public final class OfferInformationController extends TeamController {
     information.put("id", offer.id().toString());
     information.put("status", offer.offerStatus().toString());
     information.put("type", offer.bundleType().toString());
-    information.put("class", offer.bundleClass().toString());
     information.put("runtime", offer.bundleRuntime().toString());
     information.put("price", offer.price());
-    information.put("workflowAccess", offer.workflowAccess());
-    information.put("workflowNumberLimit", offer.workflowNumberLimit());
-    information.put("workflowOperationLimit", offer.workflowOperationLimit());
-    information.put("workflowTemplateAccess", offer.workflowTemplateAccess());
-    information.put("processAccess", offer.processAccess());
-    information.put("processNumberLimit", offer.processNumberLimit());
-    information.put("databaseAccess", offer.databaseAccess());
-    information.put("databaseNumberLimit", offer.databaseNumberLimit());
-    information.put("databaseDataLimit", new DecimalFormat("#.#").format(
-      offer.databaseDataLimit()));
-    information.put("webhookAccess", offer.webhookAccess());
-    information.put("webhookNumberLimit", offer.webhookNumberLimit());
-    information.put("organizationAccess", offer.organizationAccess());
-    information.put("organizationMemberLimit", offer.organizationMemberLimit());
-    information.put("organizationTeamLimit", offer.organizationTeamLimit());
-    information.put("deviceAccess", offer.deviceAccess());
-    information.put("accountsAccess", offer.accountsAccess());
-    information.put("accountsNumberLimit", offer.accountsNumberLimit());
+    information.put("collectionCardAccess", offer.collectionCardAccess());
+    information.put("valueCardAccess", offer.valueCardAccess());
+    information.put("memberCardAccess", offer.memberCardAccess());
+    information.put("analysisAccess", offer.analysisAccess());
+    information.put("actionAccess", offer.actionAccess());
+    information.put("notificationAccess", offer.notificationAccess());
+    information.put("portalAccess", offer.portalAccess());
+    information.put("multiPortalUserAccess", offer.multiPortalUserAccess());
+    information.put("portalPermissionAccess", offer.portalPermissionAccess());
     return information;
   }
 }

@@ -113,7 +113,7 @@ public final class PartnerInformationController extends TeamController {
     information.put("name", partner.name());
     information.put("description", partner.description());
     information.put("accession", partner.accession());
-    information.put("logo", Base64.getEncoder().encode(logo));
+    information.put("logo", Base64.getEncoder().encodeToString(logo));
     var membersInformation = Lists.<Map<String, Object>>newArrayList();
     for (var member : members) {
       var memberInformation = Maps.<String, Object>newHashMap();

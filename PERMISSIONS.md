@@ -11,11 +11,12 @@ This documentation outlines the various permissions required across different ar
 4. [Sales](#sales)
 5. [Partners](#partners)
 6. [Members](#members)
-7. [Offers](#offers)
-8. [Maintenance](#maintenance)
-9. [Cluster](#cluster)
-10. [Groups](#groups)
-11. [Staff](#staff)
+7. [Stamps](#stamps)
+8. [Offers](#offers)
+9. [Maintenance](#maintenance)
+10. [Cluster](#cluster)
+11. [Groups](#groups)
+12. [Staff](#staff)
 
 ---
 
@@ -96,13 +97,25 @@ The Members section contains permissions required for viewing members, viewing a
 
 ---
 
-## 7. Offers
+## 7. Stamps
+
+The Stamps section contains permissions required for viewing and editing the stamps of the partners.
+
+| Permission     | Description                             |
+|----------------|-----------------------------------------|
+| `stamps.find`  | Allows listing all stamps of a partner. |
+| `stamp.create` | Allows creating a new stamp.            |
+| `stamp.setup`  | Allows setting up a stamp.              |
+
+---
+
+## 8. Offers
 
 The Offers section contains permissions required for listing, viewing, creating and withdrawing offers.
 
 | Permission               | Description                                        |
 |--------------------------|----------------------------------------------------|
-| `offers.find`            | Allows listing all offers of an entity.            |
+| `offers.find`            | Allows listing all offers of a partner.            |
 | `offer.find`             | Allows viewing an individual offer.                |
 | `offer.price.suggestion` | Allows generating a price suggestion for an offer. |
 | `offer.create`           | Allows creating a new offer.                       |
@@ -110,7 +123,7 @@ The Offers section contains permissions required for listing, viewing, creating 
 
 ---
 
-## 8. Maintenance
+## 9. Maintenance
 
 The Maintenance section contains permissions required for listing, creating, finishing and deleting maintenance.
 
@@ -121,7 +134,7 @@ The Maintenance section contains permissions required for listing, creating, fin
 | `maintenance.finish` | Allows finishing a maintenance.                    |
 | `maintenance.delete` | Allows deleting a maintenance.                     |
 
-## 9. Cluster
+## 10. Cluster
 
 The Cluster section contains permissions required for monitoring and editing the state of the cluster.
 
@@ -147,7 +160,7 @@ The Cluster section contains permissions required for monitoring and editing the
 
 ---
 
-## 10. Groups
+## 11. Groups
 
 The Groups section contains permissions required for listing, adding, removing, renaming and editing groups.
 
@@ -164,7 +177,7 @@ The Groups section contains permissions required for listing, adding, removing, 
 
 ---
 
-## 11. Staff
+## 12. Staff
 
 The Staff section contains permissions required for listing, adding, removing and editing staff.
 

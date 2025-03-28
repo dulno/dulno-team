@@ -105,6 +105,7 @@ The Stamps section contains permissions required for viewing and editing the sta
 |----------------|-----------------------------------------|
 | `stamps.find`  | Allows listing all stamps of a partner. |
 | `stamp.create` | Allows creating a new stamp.            |
+| `stamp.delete` | Allows deleting a stamp.                |
 | `stamp.setup`  | Allows setting up a stamp.              |
 
 ---

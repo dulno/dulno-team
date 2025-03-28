@@ -51,6 +51,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
     controllers.add("/" + CURRENT_API_VERSION + "/password/reset/complete/");
     controllers.add("/" + CURRENT_API_VERSION + "/cluster/error/report/");
     controllers.add("/" + CURRENT_API_VERSION + "/cluster/backup/restore/");
+    controllers.add("/" + CURRENT_API_VERSION + "/stamp/setup/complete/");
     var url = request.getRequestURI();
     return controllers.contains(url);
   }

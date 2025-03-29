@@ -29,7 +29,6 @@ import com.dulno.team.configuration.TeamConfiguration;
 import com.dulno.team.error.TeamErrorInjectionModule;
 import com.dulno.team.group.GroupInjectionModule;
 import com.dulno.team.hetzner.HetznerInjectionModule;
-import com.dulno.team.offer.TeamOfferInjectionModule;
 import com.dulno.team.staff.StaffInjectionModule;
 import com.dulno.team.telegraf.TelegrafInjectionModule;
 import com.google.inject.AbstractModule;
@@ -71,7 +70,6 @@ public final class TeamInjectionModule extends AbstractModule {
     install(AccessInjectionModule.create());
     install(StripeInjectionModule.create());
     install(OfferInjectionModule.create());
-    install(TeamOfferInjectionModule.create());
     install(CommandInjectionModule.create());
     install(StaffInjectionModule.create());
     install(GroupInjectionModule.create());

@@ -11,9 +11,9 @@ import com.dulno.core.member.MemberDatabaseTable;
 import com.dulno.core.offer.Offer;
 import com.dulno.core.offer.OfferDatabaseTable;
 import com.dulno.core.offer.OfferStatus;
+import com.dulno.core.partner.PartnerMemberDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.offer.TeamOfferConfiguration;
 import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Maps;
 import com.stripe.StripeClient;
@@ -36,9 +36,9 @@ import java.util.concurrent.CompletableFuture;
 public final class OfferModificationController extends TeamController {
   private final OfferDatabaseTable offerDatabaseTable;
   private final BundlePresetRepository bundlePresetRepository;
-  private final TeamOfferConfiguration teamOfferConfiguration;
   private final StripeClient stripeClient;
   private final MemberDatabaseTable memberDatabaseTable;
+  private final PartnerMemberDatabaseTable partnerMemberDatabaseTable;
   private final Mail saleMail;
   private final Translation translation;
   private final ErrorRepository errorRepository;
@@ -48,18 +48,18 @@ public final class OfferModificationController extends TeamController {
     Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     OfferDatabaseTable offerDatabaseTable,
-    BundlePresetRepository bundlePresetRepository,
-    TeamOfferConfiguration teamOfferConfiguration, StripeClient stripeClient,
+    BundlePresetRepository bundlePresetRepository, StripeClient stripeClient,
     MemberDatabaseTable memberDatabaseTable,
+    PartnerMemberDatabaseTable partnerMemberDatabaseTable,
     @Qualifier("saleMail") Mail saleMail, Translation translation,
     ErrorRepository errorRepository, DulnoEnvironment environment
   ) {
     super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.offerDatabaseTable = offerDatabaseTable;
     this.bundlePresetRepository = bundlePresetRepository;
-    this.teamOfferConfiguration = teamOfferConfiguration;
     this.stripeClient = stripeClient;
     this.memberDatabaseTable = memberDatabaseTable;
+    this.partnerMemberDatabaseTable = partnerMemberDatabaseTable;
     this.saleMail = saleMail;
     this.translation = translation;
     this.errorRepository = errorRepository;
@@ -95,13 +95,13 @@ public final class OfferModificationController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var targetId = body.getUUID("target");
+    var partnerId = body.getUUID("partner");
     staffHasPermission(findStaffId(request), "offer.create")
-      .thenAcceptAsync(hasPermission -> createOffer(targetId, body, hasPermission));
+      .thenAcceptAsync(hasPermission -> createOffer(partnerId, body, hasPermission));
   }
 
   private void createOffer(
-    UUID targetId, DulnoRequestBody body, boolean hasPermission
+    UUID partnerId, DulnoRequestBody body, boolean hasPermission
   ) {
     if (!hasPermission) {
       return;
@@ -111,18 +111,20 @@ public final class OfferModificationController extends TeamController {
     var price = Math.round(body.getDouble("price") * 100.0) / 100.0;
     var priceId = createStripeOffer(price);
     offerDatabaseTable.generateAvailableOfferId()
-      .thenAccept(id -> createOffer(id, targetId, priceId, preset, runtime,
+      .thenAccept(id -> createOffer(id, partnerId, priceId, preset, runtime,
         price));
   }
 
   private void createOffer(
-    UUID id, UUID targetId, String priceId, BundlePreset preset,
+    UUID id, UUID partnerId, String priceId, BundlePreset preset,
     BundleRuntime runtime, double price
   ) {
-    offerDatabaseTable.insertOffer(Offer.of(id, targetId,
+    offerDatabaseTable.insertOffer(Offer.of(id, partnerId,
       priceId, OfferStatus.PENDING, preset, runtime, price));
-    memberDatabaseTable.findMember(targetId)
-      .thenAccept(member -> sendOfferEmail(member, id));
+    partnerMemberDatabaseTable.findPartnerMembers(partnerId)
+      .thenAccept(memberIds -> memberIds.stream()
+        .forEach(memberId -> memberDatabaseTable.findMember(memberId)
+          .thenAccept(member -> sendOfferEmail(member, id))));
   }
 
   private static final String OFFER_URL = "https://%s/offer/%s/";

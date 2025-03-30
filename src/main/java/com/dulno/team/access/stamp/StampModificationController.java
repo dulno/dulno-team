@@ -3,6 +3,7 @@ package com.dulno.team.access.stamp;
 import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.stamp.Stamp;
+import com.dulno.core.stamp.StampAssignmentRole;
 import com.dulno.core.stamp.StampDatabaseTable;
 import com.dulno.core.stamp.StampSetupDatabaseTable;
 import com.dulno.team.access.TeamController;
@@ -65,8 +66,9 @@ public final class StampModificationController extends TeamController {
       return;
     }
     stampDatabaseTable.generateAvailableStampId()
-      .thenAccept(id -> stampDatabaseTable.insertStamp(id, partnerId, "",
-        DEFAULT_MASTER_KEY, name, null, System.currentTimeMillis()));
+      .thenAccept(id -> stampDatabaseTable.insertStamp(Stamp.create(id,
+        partnerId, "", DEFAULT_MASTER_KEY, name, null,
+        StampAssignmentRole.UNASSIGNED, System.currentTimeMillis())));
   }
 
   @RequestMapping(path = "/stamp/delete/", method = RequestMethod.POST)

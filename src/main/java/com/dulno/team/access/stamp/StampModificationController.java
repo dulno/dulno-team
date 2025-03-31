@@ -2,10 +2,7 @@ package com.dulno.team.access.stamp;
 
 import com.dulno.core.access.DulnoRequestBody;
 import com.dulno.core.error.ErrorRepository;
-import com.dulno.core.stamp.Stamp;
-import com.dulno.core.stamp.StampAssignmentRole;
-import com.dulno.core.stamp.StampDatabaseTable;
-import com.dulno.core.stamp.StampSetupDatabaseTable;
+import com.dulno.core.stamp.*;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
 import com.dulno.team.staff.StaffDatabaseTable;
@@ -55,20 +52,24 @@ public final class StampModificationController extends TeamController {
     var body = DulnoRequestBody.of(payload, response);
     var partnerId = body.getUUID("partner");
     var name = body.getSanitizedString("name");
+    var type = StampType.valueOf(body.getString("type"));
     staffHasPermission(findStaffId(request), "stamp.create")
-      .thenAccept(hasPermission -> createStamp(partnerId, name, hasPermission));
+      .thenAccept(hasPermission -> createStamp(partnerId, name, type,
+        hasPermission));
   }
 
   private static final String DEFAULT_MASTER_KEY = "00000000000000000000000000000000";
 
-  private void createStamp(UUID partnerId, String name, boolean hasPermission) {
+  private void createStamp(
+    UUID partnerId, String name, StampType type, boolean hasPermission
+  ) {
     if (!hasPermission) {
       return;
     }
     stampDatabaseTable.generateAvailableStampId()
       .thenAccept(id -> stampDatabaseTable.insertStamp(Stamp.create(id,
-        partnerId, "", DEFAULT_MASTER_KEY, name, null,
-        StampAssignmentRole.UNASSIGNED, System.currentTimeMillis())));
+        partnerId, "", DEFAULT_MASTER_KEY, name, type, StampState.ACTIVE,
+        null, StampAssignmentRole.UNASSIGNED, System.currentTimeMillis())));
   }
 
   @RequestMapping(path = "/stamp/delete/", method = RequestMethod.POST)

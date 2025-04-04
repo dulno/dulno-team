@@ -1,6 +1,6 @@
 package com.dulno.team.access.stamp;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.stamp.*;
 import com.dulno.team.access.TeamController;

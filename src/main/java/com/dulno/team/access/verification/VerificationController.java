@@ -1,6 +1,6 @@
 package com.dulno.team.access.verification;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.hashing.Hashing;
 import com.dulno.core.member.session.SessionStatus;
 import com.dulno.core.member.session.UserAgent;

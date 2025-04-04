@@ -1,6 +1,6 @@
 package com.dulno.team.access.member;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.member.MemberDatabaseTable;
 import com.dulno.core.member.session.Session;
 import com.dulno.core.member.session.SessionDatabaseTable;

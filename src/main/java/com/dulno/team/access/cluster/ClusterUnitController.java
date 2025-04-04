@@ -1,6 +1,6 @@
 package com.dulno.team.access.cluster;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.team.access.TeamController;

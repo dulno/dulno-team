@@ -1,6 +1,6 @@
 package com.dulno.team.access.question;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.mail.Mail;
 import com.dulno.core.question.Question;
 import com.dulno.core.question.QuestionDatabaseTable;

@@ -1,6 +1,5 @@
 package com.dulno.team;
 
-import com.dulno.core.access.AccessInjectionModule;
 import com.dulno.core.bundle.BundleInjectionModule;
 import com.dulno.core.card.CardInjectionModule;
 import com.dulno.core.command.CommandInjectionModule;
@@ -67,7 +66,6 @@ public final class TeamInjectionModule extends AbstractModule {
     install(QuestionInjectionModule.create());
     install(SaleInjectionModule.create());
     install(LocaleInjectionModule.create());
-    install(AccessInjectionModule.create());
     install(StripeInjectionModule.create());
     install(OfferInjectionModule.create());
     install(CommandInjectionModule.create());

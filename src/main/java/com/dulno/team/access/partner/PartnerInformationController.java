@@ -1,13 +1,10 @@
 package com.dulno.team.access.partner;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.partner.*;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.core.member.Member;
 import com.dulno.core.member.MemberDatabaseTable;
-import com.dulno.core.partner.Partner;
-import com.dulno.core.partner.PartnerDatabaseTable;
-import com.dulno.core.partner.PartnerLogoDatabaseTable;
-import com.dulno.core.partner.PartnerMemberDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
 import com.dulno.team.staff.StaffDatabaseTable;
@@ -105,7 +102,7 @@ public final class PartnerInformationController extends TeamController {
   }
 
   private Map<String, Object> assemblyPartnerInformation(
-    Partner partner, byte[] logo, List<Member> members
+    Partner partner, PartnerLogo logo, List<Member> members
   ) {
     var information = Maps.<String, Object>newHashMap();
     information.put("found", true);
@@ -113,7 +110,8 @@ public final class PartnerInformationController extends TeamController {
     information.put("name", partner.name());
     information.put("description", partner.description());
     information.put("accession", partner.accession());
-    information.put("logo", Base64.getEncoder().encodeToString(logo));
+    information.put("logoId", logo.logoId());
+    information.put("logo", Base64.getEncoder().encodeToString(logo.content()));
     var membersInformation = Lists.<Map<String, Object>>newArrayList();
     for (var member : members) {
       var memberInformation = Maps.<String, Object>newHashMap();

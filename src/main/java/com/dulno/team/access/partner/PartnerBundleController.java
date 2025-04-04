@@ -1,6 +1,6 @@
 package com.dulno.team.access.partner;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.bundle.*;
 import com.dulno.core.stripe.TerminationDatabaseTable;
 import com.dulno.team.access.TeamController;

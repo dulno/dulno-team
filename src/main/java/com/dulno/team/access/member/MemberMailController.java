@@ -1,6 +1,6 @@
 package com.dulno.team.access.member;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.error.ErrorRepository;
 import com.dulno.core.mail.*;
 import com.dulno.core.member.MemberDatabaseTable;

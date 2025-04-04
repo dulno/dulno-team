@@ -130,8 +130,8 @@ public final class OfferModificationController extends TeamController {
   private static final String OFFER_URL = "https://%s/offer/%s/";
 
   private void sendOfferEmail(Member member, UUID offerId) {
-    var title = translation.translate(member, "offer.email.title");
-    var body = String.format(translation.translate(member, "offer.email.body"),
+    var title = translation.translateMember(member, "offer.email.title");
+    var body = String.format(translation.translateMember(member, "offer.email.body"),
       member.name(), String.format(OFFER_URL, environment.domain(),
         offerId.toString()));
     saleMail.send(member, title, body);

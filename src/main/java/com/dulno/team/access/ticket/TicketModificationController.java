@@ -91,8 +91,9 @@ public final class TicketModificationController extends TeamController {
           .insertTicketMessage(TicketMessage.create(messageId, ticket.id(),
             staff.id(), TicketMessageAuthorType.TEAM, message,
             System.currentTimeMillis()))));
-    var title = translation.translate(creator, "ticket.answer.email.title");
-    var body = String.format(translation.translate(creator, "ticket.answer.email.body"),
+    var title = translation.translateMember(creator, "ticket.answer.email.title");
+    var body = String.format(
+      translation.translateMember(creator, "ticket.answer.email.body"),
       creator.name(), ticket.title(), String.format(TICKET_URL_FORMAT,
         environment.domain(), ticket.id()));
     supportMail.send(creator, title, body);

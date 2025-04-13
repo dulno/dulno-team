@@ -74,7 +74,7 @@ public final class PartnerBundleController extends TeamController {
     information.put("valueCardAccess", bundle.valueCardAccess());
     information.put("memberCardAccess", bundle.memberCardAccess());
     information.put("analysisAccess", bundle.analysisAccess());
-    information.put("actionAccess", bundle.actionAccess());
+    information.put("campaignAccess", bundle.campaignAccess());
     information.put("notificationAccess", bundle.notificationAccess());
     information.put("portalAccess", bundle.portalAccess());
     information.put("multiPortalUserAccess", bundle.multiPortalUserAccess());

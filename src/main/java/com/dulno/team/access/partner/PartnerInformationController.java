@@ -1,6 +1,9 @@
 package com.dulno.team.access.partner;
 
 import com.dulno.core.partner.*;
+import com.dulno.core.partner.logo.PartnerLogo;
+import com.dulno.core.partner.logo.PartnerLogoDatabaseTable;
+import com.dulno.core.partner.member.PartnerMemberDatabaseTable;
 import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.core.member.Member;

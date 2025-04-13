@@ -1,12 +1,12 @@
 package com.dulno.team.access.member;
 
+import com.dulno.core.partner.member.PartnerMemberDatabaseTable;
 import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.core.member.Member;
 import com.dulno.core.member.MemberDatabaseTable;
 import com.dulno.core.partner.Partner;
 import com.dulno.core.partner.PartnerDatabaseTable;
-import com.dulno.core.partner.PartnerMemberDatabaseTable;
 import com.dulno.core.ticket.Ticket;
 import com.dulno.core.ticket.TicketDatabaseTable;
 import com.dulno.team.access.TeamController;

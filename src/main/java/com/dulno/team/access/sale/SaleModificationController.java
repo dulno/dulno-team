@@ -1,6 +1,6 @@
 package com.dulno.team.access.sale;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.mail.Mail;
 import com.dulno.core.sale.Sale;
 import com.dulno.core.sale.SaleDatabaseTable;
@@ -88,7 +88,7 @@ public final class SaleModificationController extends TeamController {
   private void answerSale(
     Staff staff, Sale sale, String message, UUID messageId
   ) {
-    sale.resetExpirationTime();
+    sale.resetExpiration();
     saleDatabaseTable.updateSale(sale);
     saleMail.send(sale.sender(), "Re: " + sale.title(), message,
       "text/html; charset=utf-8")

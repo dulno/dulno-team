@@ -1,6 +1,6 @@
 package com.dulno.team.access.cluster;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
 import com.dulno.team.hetzner.HetznerRequestFactory;

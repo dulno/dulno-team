@@ -1,6 +1,7 @@
 package com.dulno.team.access.offer;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.partner.member.PartnerMemberDatabaseTable;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.bundle.*;
 import com.dulno.core.environment.DulnoEnvironment;
 import com.dulno.core.error.ErrorRepository;
@@ -13,7 +14,6 @@ import com.dulno.core.offer.OfferDatabaseTable;
 import com.dulno.core.offer.OfferStatus;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
-import com.dulno.team.offer.TeamOfferConfiguration;
 import com.dulno.team.staff.StaffDatabaseTable;
 import com.google.common.collect.Maps;
 import com.stripe.StripeClient;
@@ -36,9 +36,9 @@ import java.util.concurrent.CompletableFuture;
 public final class OfferModificationController extends TeamController {
   private final OfferDatabaseTable offerDatabaseTable;
   private final BundlePresetRepository bundlePresetRepository;
-  private final TeamOfferConfiguration teamOfferConfiguration;
   private final StripeClient stripeClient;
   private final MemberDatabaseTable memberDatabaseTable;
+  private final PartnerMemberDatabaseTable partnerMemberDatabaseTable;
   private final Mail saleMail;
   private final Translation translation;
   private final ErrorRepository errorRepository;
@@ -48,18 +48,18 @@ public final class OfferModificationController extends TeamController {
     Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     OfferDatabaseTable offerDatabaseTable,
-    BundlePresetRepository bundlePresetRepository,
-    TeamOfferConfiguration teamOfferConfiguration, StripeClient stripeClient,
+    BundlePresetRepository bundlePresetRepository, StripeClient stripeClient,
     MemberDatabaseTable memberDatabaseTable,
+    PartnerMemberDatabaseTable partnerMemberDatabaseTable,
     @Qualifier("saleMail") Mail saleMail, Translation translation,
     ErrorRepository errorRepository, DulnoEnvironment environment
   ) {
     super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.offerDatabaseTable = offerDatabaseTable;
     this.bundlePresetRepository = bundlePresetRepository;
-    this.teamOfferConfiguration = teamOfferConfiguration;
     this.stripeClient = stripeClient;
     this.memberDatabaseTable = memberDatabaseTable;
+    this.partnerMemberDatabaseTable = partnerMemberDatabaseTable;
     this.saleMail = saleMail;
     this.translation = translation;
     this.errorRepository = errorRepository;
@@ -84,28 +84,9 @@ public final class OfferModificationController extends TeamController {
     }
     var preset = findBundlePreset(body);
     var runtime = BundleRuntime.valueOf(body.getString("runtime"));
-    var workflowNumberLimit = findBundleWorkflowNumberLimit(body, preset);
-    var workflowOperationLimit = findBundleWorkflowOperationLimit(body, preset);
-    var processNumberLimit = findBundleProcessNumberLimit(body, preset);
-    var databaseNumberLimit = findBundleDatabaseNumberLimit(body, preset);
-    var databaseDataLimit = findBundleDatabaseDataLimit(body, preset);
-    var isOrganization = preset.bundleType().isTeam() ||
-      preset.bundleType().isEnterprise();
-    var organizationMemberLimit = isOrganization ?
-      findBundleOrganizationMemberLimit(body, preset) : 0;
-    var organizationTeamLimit = isOrganization ?
-      findBundleOrganizationTeamLimit(body, preset) : 0;
-    var price = teamOfferConfiguration.workflowPrice() * workflowNumberLimit +
-      teamOfferConfiguration.workflowOperationPrice() * workflowOperationLimit +
-      teamOfferConfiguration.processPrice() * processNumberLimit +
-      teamOfferConfiguration.databasePrice() * databaseNumberLimit +
-      teamOfferConfiguration.databaseDataPrice() * databaseDataLimit +
-      teamOfferConfiguration.organizationMemberPrice() * organizationMemberLimit +
-      teamOfferConfiguration.organizationTeamPrice() * organizationTeamLimit;
-    if (runtime.isMonthly()) {
-      price *= 4D / 3;
-    }
-    return Map.of("price", Math.round(price * 100.0) / 100.0);
+    var price = preset.hasPrice() ? (runtime.isMonthly() ?
+      preset.monthlyPrice() : preset.yearlyPrice()) : 0;
+    return Map.of("price", price);
   }
 
   @RequestMapping(path = "/offer/create/", method = RequestMethod.POST)
@@ -114,58 +95,43 @@ public final class OfferModificationController extends TeamController {
     HttpServletResponse response
   ) {
     var body = DulnoRequestBody.of(payload, response);
-    var targetId = body.getUUID("target");
+    var partnerId = body.getUUID("partner");
     staffHasPermission(findStaffId(request), "offer.create")
-      .thenAcceptAsync(hasPermission -> createOffer(targetId, body, hasPermission));
+      .thenAcceptAsync(hasPermission -> createOffer(partnerId, body, hasPermission));
   }
 
   private void createOffer(
-    UUID targetId, DulnoRequestBody body, boolean hasPermission
+    UUID partnerId, DulnoRequestBody body, boolean hasPermission
   ) {
     if (!hasPermission) {
       return;
     }
     var preset = findBundlePreset(body);
     var runtime = BundleRuntime.valueOf(body.getString("runtime"));
-    var workflowNumberLimit = findBundleWorkflowNumberLimit(body, preset);
-    var workflowOperationLimit = findBundleWorkflowOperationLimit(body, preset);
-    var processNumberLimit = findBundleProcessNumberLimit(body, preset);
-    var databaseNumberLimit = findBundleDatabaseNumberLimit(body, preset);
-    var databaseDataLimit = findBundleDatabaseDataLimit(body, preset);
-    var isOrganization = preset.bundleType().isTeam() ||
-      preset.bundleType().isEnterprise();
-    var organizationMemberLimit = isOrganization ?
-      findBundleOrganizationMemberLimit(body, preset) : 0;
-    var organizationTeamLimit = isOrganization ?
-      findBundleOrganizationTeamLimit(body, preset) : 0;
     var price = Math.round(body.getDouble("price") * 100.0) / 100.0;
     var priceId = createStripeOffer(price);
     offerDatabaseTable.generateAvailableOfferId()
-      .thenAccept(id -> createOffer(id, targetId, priceId, preset, runtime,
-        price, workflowNumberLimit, workflowOperationLimit, processNumberLimit,
-        databaseNumberLimit, databaseDataLimit, organizationMemberLimit,
-        organizationTeamLimit));
+      .thenAccept(id -> createOffer(id, partnerId, priceId, preset, runtime,
+        price));
   }
 
   private void createOffer(
-    UUID id, UUID targetId, String priceId, BundlePreset preset,
-    BundleRuntime runtime, double price, long workflowNumberLimit,
-    long workflowOperationLimit, long processNumberLimit, long databaseNumberLimit,
-    double databaseDataLimit, long organizationMemberLimit, long organizationTeamLimit
+    UUID id, UUID partnerId, String priceId, BundlePreset preset,
+    BundleRuntime runtime, double price
   ) {
-    offerDatabaseTable.insertOffer(Offer.of(id, targetId,
-      priceId, OfferStatus.PENDING, preset, runtime, price, workflowNumberLimit,
-      workflowOperationLimit, processNumberLimit, databaseNumberLimit,
-      databaseDataLimit, organizationMemberLimit, organizationTeamLimit));
-    memberDatabaseTable.findMember(targetId)
-      .thenAccept(member -> sendOfferEmail(member, id));
+    offerDatabaseTable.insertOffer(Offer.of(id, partnerId,
+      priceId, OfferStatus.PENDING, preset, runtime, price));
+    partnerMemberDatabaseTable.findPartnerMembers(partnerId)
+      .thenAccept(memberIds -> memberIds.stream()
+        .forEach(memberId -> memberDatabaseTable.findMember(memberId)
+          .thenAccept(member -> sendOfferEmail(member, id))));
   }
 
   private static final String OFFER_URL = "https://%s/offer/%s/";
 
   private void sendOfferEmail(Member member, UUID offerId) {
-    var title = translation.translate(member, "offer.email.title");
-    var body = String.format(translation.translate(member, "offer.email.body"),
+    var title = translation.translateMember(member, "offer.email.title");
+    var body = String.format(translation.translateMember(member, "offer.email.body"),
       member.name(), String.format(OFFER_URL, environment.domain(),
         offerId.toString()));
     saleMail.send(member, title, body);
@@ -193,77 +159,9 @@ public final class OfferModificationController extends TeamController {
     }
   }
 
-  private long findBundleWorkflowNumberLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("workflowNumberLimit")) {
-      return preset.workflowNumberLimit();
-    }
-    return body.getLong("workflowNumberLimit");
-  }
-
-  private long findBundleWorkflowOperationLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("workflowOperationLimit")) {
-      return preset.hasWorkflowOperationLimit() ?
-        preset.workflowOperationLimit() : 0;
-    }
-    return body.getLong("workflowOperationLimit");
-  }
-
-  private long findBundleProcessNumberLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("processNumberLimit")) {
-      return preset.processNumberLimit();
-    }
-    return body.getLong("processNumberLimit");
-  }
-
-  private long findBundleDatabaseNumberLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("databaseNumberLimit")) {
-      return preset.databaseNumberLimit();
-    }
-    return body.getLong("databaseNumberLimit");
-  }
-
-  private double findBundleDatabaseDataLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("databaseDataLimit")) {
-      return preset.databaseDataLimit();
-    }
-    return body.getDouble("databaseDataLimit");
-  }
-
-  private long findBundleOrganizationMemberLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("organizationMemberLimit")) {
-      return preset.organizationMemberLimit();
-    }
-    return body.getLong("organizationMemberLimit");
-  }
-
-  private long findBundleOrganizationTeamLimit(
-    DulnoRequestBody body, BundlePreset preset
-  ) {
-    if (!body.has("organizationTeamLimit")) {
-      return preset.organizationTeamLimit();
-    }
-    return body.getLong("organizationTeamLimit");
-  }
-
   private BundlePreset findBundlePreset(DulnoRequestBody body) {
-    var bundleType = BundleType.valueOf(body.getString("type"));
-    if (bundleType.isTrial() || bundleType.isEnterprise()) {
-      return bundlePresetRepository.findPreset(bundleType).get();
-    }
-    var bundleClass = BundleClass.valueOf(body.getString("class"));
-    return bundlePresetRepository.findPreset(bundleType, bundleClass).get();
+    return bundlePresetRepository.findPreset(
+      BundleType.valueOf(body.getString("type"))).get();
   }
 
   @RequestMapping(path = "/offer/withdraw/", method = RequestMethod.POST)

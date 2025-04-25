@@ -1,6 +1,6 @@
 package com.dulno.team.access.ticket;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.core.member.Member;
 import com.dulno.core.member.MemberDatabaseTable;
@@ -74,11 +74,11 @@ public final class TicketInformationController extends TeamController {
     var sortedOut = Lists.<Ticket>newArrayList();
     var currentTime = System.currentTimeMillis();
     for (var ticket : tickets) {
-      if (ticket.expirationTime() == -1) {
+      if (ticket.expiration() == -1) {
         continue;
       }
       sortedOut.add(ticket);
-      if (currentTime >= ticket.expirationTime()) {
+      if (currentTime >= ticket.expiration()) {
         ticketDatabaseTable.updateTicketStatus(ticket.id(), Ticket.Status.CLOSED);
       }
     }

@@ -1,6 +1,6 @@
 package com.dulno.team.access.setting;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.environment.DulnoEnvironment;
 import com.dulno.core.hashing.Hashing;
 import com.dulno.core.locale.Translation;

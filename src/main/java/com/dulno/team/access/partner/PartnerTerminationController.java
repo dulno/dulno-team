@@ -1,6 +1,6 @@
 package com.dulno.team.access.partner;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.bundle.Bundle;
 import com.dulno.core.bundle.BundleDatabaseTable;
 import com.dulno.core.error.ErrorRepository;
@@ -69,7 +69,7 @@ public final class PartnerTerminationController extends TeamController {
   }
 
   private CompletableFuture<Map<String, Object>> findPartnerTerminationStatus(
-    UUID targetId, boolean hasPermission, boolean bundleExists,
+    UUID partnerId, boolean hasPermission, boolean bundleExists,
     boolean stripeAccountExists
   ) {
     if (!hasPermission) {
@@ -78,16 +78,16 @@ public final class PartnerTerminationController extends TeamController {
     if (!bundleExists || !stripeAccountExists) {
       return CompletableFuture.completedFuture(Map.of("terminable", false));
     }
-    return bundleDatabaseTable.findBundle(targetId)
-      .thenCompose(bundle -> stripeDatabaseTable.findStripeAccountByPartner(targetId)
-        .thenCompose(stripeAccount -> findPartnerTerminationStatus(targetId, bundle,
+    return bundleDatabaseTable.findBundle(partnerId)
+      .thenCompose(bundle -> stripeDatabaseTable.findStripeAccountByPartner(partnerId)
+        .thenCompose(stripeAccount -> findPartnerTerminationStatus(partnerId, bundle,
           stripeAccount.accountId())));
   }
 
   private CompletableFuture<Map<String, Object>> findPartnerTerminationStatus(
-    UUID targetId, Bundle bundle, String stripeAccountId
+    UUID partnerId, Bundle bundle, String stripeAccountId
   ) {
-    if (bundle.bundleType().isTrial() || bundle.bundleRuntime().isUnbound()) {
+    if (bundle.bundleRuntime().isUnbound()) {
       return CompletableFuture.completedFuture(Map.of("terminable", false,
         "terminated", false));
     }
@@ -99,7 +99,7 @@ public final class PartnerTerminationController extends TeamController {
         return CompletableFuture.completedFuture(Map.of("terminable", true,
           "terminated", true));
       }
-      return terminationDatabaseTable.terminationExists(targetId)
+      return terminationDatabaseTable.terminationExists(partnerId)
         .thenApply(exists -> findPartnerTerminationStatus(bundle, exists));
     } catch (Exception exception) {
       errorRepository.processError(exception);
@@ -133,34 +133,34 @@ public final class PartnerTerminationController extends TeamController {
   }
 
   private void terminatePartnerBundle(
-    UUID targetId, boolean hasPermission, boolean bundleExists,
+    UUID partnerId, boolean hasPermission, boolean bundleExists,
     boolean stripeAccountExists
   ) {
     if (!hasPermission || !bundleExists || !stripeAccountExists) {
       return;
     }
-    bundleDatabaseTable.findBundle(targetId)
-      .thenAccept(bundle -> stripeDatabaseTable.findStripeAccountByPartner(targetId)
-        .thenAccept(stripeAccount -> terminatePartnerBundle(targetId, bundle,
+    bundleDatabaseTable.findBundle(partnerId)
+      .thenAccept(bundle -> stripeDatabaseTable.findStripeAccountByPartner(partnerId)
+        .thenAccept(stripeAccount -> terminatePartnerBundle(partnerId, bundle,
           stripeAccount)));
   }
 
   private void terminatePartnerBundle(
-    UUID targetId, Bundle bundle, StripeAccount account
+    UUID partnerId, Bundle bundle, StripeAccount account
   ) {
     if (bundle.bundleRuntime().isMonthly()) {
       cancelSubscription(account);
     } else if (bundle.bundleRuntime().isYearly()) {
-      terminateYearly(targetId, bundle, account);
+      terminateYearly(partnerId, bundle, account);
     }
   }
 
-  private void terminateYearly(UUID targetId, Bundle bundle, StripeAccount account) {
+  private void terminateYearly(UUID partnerId, Bundle bundle, StripeAccount account) {
     if (isDirectlyTerminable(bundle)) {
       cancelSubscription(account);
       return;
     }
-    terminationDatabaseTable.insertTermination(targetId);
+    terminationDatabaseTable.insertTermination(partnerId);
   }
 
   private CompletableFuture<Void> cancelSubscription(StripeAccount account) {

@@ -1,8 +1,12 @@
 package com.dulno.team.access.member;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.partner.member.PartnerMemberDatabaseTable;
+import com.dulno.core.request.DulnoRequestBody;
+import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.core.member.Member;
 import com.dulno.core.member.MemberDatabaseTable;
+import com.dulno.core.partner.Partner;
+import com.dulno.core.partner.PartnerDatabaseTable;
 import com.dulno.core.ticket.Ticket;
 import com.dulno.core.ticket.TicketDatabaseTable;
 import com.dulno.team.access.TeamController;
@@ -26,15 +30,21 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 public final class MemberInformationController extends TeamController {
   private final MemberDatabaseTable memberDatabaseTable;
+  private final PartnerMemberDatabaseTable partnerMemberDatabaseTable;
+  private final PartnerDatabaseTable partnerDatabaseTable;
   private final TicketDatabaseTable ticketDatabaseTable;
 
   private MemberInformationController(
     Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable, MemberDatabaseTable memberDatabaseTable,
+    PartnerMemberDatabaseTable partnerMemberDatabaseTable,
+    PartnerDatabaseTable partnerDatabaseTable,
     TicketDatabaseTable ticketDatabaseTable
   ) {
     super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.memberDatabaseTable = memberDatabaseTable;
+    this.partnerMemberDatabaseTable = partnerMemberDatabaseTable;
+    this.partnerDatabaseTable = partnerDatabaseTable;
     this.ticketDatabaseTable = ticketDatabaseTable;
   }
 
@@ -60,12 +70,15 @@ public final class MemberInformationController extends TeamController {
       return CompletableFuture.completedFuture(Map.of("found", false));
     }
     return memberDatabaseTable.findMember(memberId)
-      .thenCompose(member -> ticketDatabaseTable.findAllOpenTicketsOfCreator(memberId)
-        .thenApply(tickets -> assemblyMemberInformation(member, tickets)));
+      .thenCompose(member -> partnerMemberDatabaseTable.findMemberPartners(memberId)
+        .thenCompose(partnerIds -> AsyncIterator.execute(partnerIds,
+            partnerDatabaseTable::findPartner)
+          .thenCompose(partners -> ticketDatabaseTable.findAllOpenTicketsOfCreator(memberId)
+            .thenApply(tickets -> assemblyMemberInformation(member, partners, tickets)))));
   }
 
   private Map<String, Object> assemblyMemberInformation(
-    Member member, List<Ticket> tickets
+    Member member, List<Partner> partners, List<Ticket> tickets
   ) {
     var information = Maps.<String, Object>newHashMap();
     information.put("found", true);
@@ -73,13 +86,25 @@ public final class MemberInformationController extends TeamController {
     information.put("email", member.email());
     information.put("name", member.name());
     information.put("language", member.language());
-    information.put("joinDate", member.joinDate());
-    var ticketInformation = Lists.<Map<String, Object>>newArrayList();
-    for (var ticket : tickets) {
-      ticketInformation.add(Map.of("id", ticket.id(),
-        "name", ticket.title(), "type", ticket.type(), "status", ticket.status()));
+    information.put("joinDate", member.accession());
+    var partnersInformation = Lists.<Map<String, Object>>newArrayList();
+    for (var partner : partners) {
+      var partnerInformation = Maps.<String, Object>newHashMap();
+      partnerInformation.put("id", partner.id());
+      partnerInformation.put("name", partner.name());
+      partnersInformation.add(partnerInformation);
     }
-    information.put("tickets", ticketInformation);
+    information.put("partners", partnersInformation);
+    var ticketsInformation = Lists.<Map<String, Object>>newArrayList();
+    for (var ticket : tickets) {
+      var ticketInformation = Maps.<String, Object>newHashMap();
+      ticketInformation.put("id", ticket.id());
+      ticketInformation.put("name", ticket.title());
+      ticketInformation.put("type", ticket.type());
+      ticketInformation.put("status", ticket.status());
+      ticketsInformation.add(ticketInformation);
+    }
+    information.put("tickets", ticketsInformation);
     return information;
   }
 }

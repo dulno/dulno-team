@@ -1,6 +1,6 @@
 package com.dulno.team.access.question;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.iterator.AsyncIterator;
 import com.dulno.core.mail.Mail;
 import com.dulno.core.mail.MailMessage;
@@ -194,7 +194,7 @@ public final class QuestionInformationController extends TeamController {
     Runnable futureResponse
   ) {
     if (repliedMail != null) {
-      repliedMail.disableExpirationTime();
+      repliedMail.disableExpiration();
       questionDatabaseTable.updateQuestion(repliedMail)
         .thenCompose(value -> saveSupportMailMessage(repliedMail.id(),
           incomingMessage))
@@ -246,11 +246,11 @@ public final class QuestionInformationController extends TeamController {
     var sortedOut = Lists.<Question>newArrayList();
     var currentTime = System.currentTimeMillis();
     for (var question : questions) {
-      if (question.expirationTime() == -1) {
+      if (question.expiration() == -1) {
         continue;
       }
       sortedOut.add(question);
-      if (currentTime >= question.expirationTime()) {
+      if (currentTime >= question.expiration()) {
         questionDatabaseTable.updateQuestionStatus(question.id(),
           Question.Status.CLOSED);
       }

@@ -1,7 +1,7 @@
 package com.dulno.team;
 
-import com.dulno.core.access.AccessInjectionModule;
 import com.dulno.core.bundle.BundleInjectionModule;
+import com.dulno.core.card.CardInjectionModule;
 import com.dulno.core.command.CommandInjectionModule;
 import com.dulno.core.database.DatabaseInjectionModule;
 import com.dulno.core.environment.EnvironmentInjectionModule;
@@ -20,14 +20,15 @@ import com.dulno.core.offer.OfferInjectionModule;
 import com.dulno.core.partner.PartnerInjectionModule;
 import com.dulno.core.question.QuestionInjectionModule;
 import com.dulno.core.sale.SaleInjectionModule;
+import com.dulno.core.stamp.StampInjectionModule;
 import com.dulno.core.stripe.StripeInjectionModule;
 import com.dulno.core.ticket.TicketInjectionModule;
+import com.dulno.core.user.UserInjectionModule;
 import com.dulno.team.cluster.ClusterInjectionModule;
 import com.dulno.team.configuration.TeamConfiguration;
 import com.dulno.team.error.TeamErrorInjectionModule;
 import com.dulno.team.group.GroupInjectionModule;
 import com.dulno.team.hetzner.HetznerInjectionModule;
-import com.dulno.team.offer.TeamOfferInjectionModule;
 import com.dulno.team.staff.StaffInjectionModule;
 import com.dulno.team.telegraf.TelegrafInjectionModule;
 import com.google.inject.AbstractModule;
@@ -57,6 +58,9 @@ public final class TeamInjectionModule extends AbstractModule {
     install(DatabaseInjectionModule.create());
     install(PartnerInjectionModule.create());
     install(MemberInjectionModule.create());
+    install(StampInjectionModule.create());
+    install(CardInjectionModule.create());
+    install(UserInjectionModule.create());
     install(SessionInjectionModule.create());
     install(MailInjectionModule.create());
     install(BundleInjectionModule.create());
@@ -64,10 +68,8 @@ public final class TeamInjectionModule extends AbstractModule {
     install(QuestionInjectionModule.create());
     install(SaleInjectionModule.create());
     install(LocaleInjectionModule.create());
-    install(AccessInjectionModule.create());
     install(StripeInjectionModule.create());
     install(OfferInjectionModule.create());
-    install(TeamOfferInjectionModule.create());
     install(CommandInjectionModule.create());
     install(StaffInjectionModule.create());
     install(GroupInjectionModule.create());

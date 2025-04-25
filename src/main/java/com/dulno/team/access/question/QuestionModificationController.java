@@ -1,6 +1,6 @@
 package com.dulno.team.access.question;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.mail.Mail;
 import com.dulno.core.question.Question;
 import com.dulno.core.question.QuestionDatabaseTable;
@@ -90,7 +90,7 @@ public final class QuestionModificationController extends TeamController {
   private void answerQuestion(
     Staff staff, Question question, String message, UUID messageId
   ) {
-    question.resetExpirationTime();
+    question.resetExpiration();
     questionDatabaseTable.updateQuestion(question);
     supportMail.send(question.sender(), "Re: " + question.title(), message,
       "text/html; charset=utf-8")

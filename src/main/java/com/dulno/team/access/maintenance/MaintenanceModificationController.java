@@ -1,6 +1,6 @@
 package com.dulno.team.access.maintenance;
 
-import com.dulno.core.access.DulnoRequestBody;
+import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.maintenance.Maintenance;
 import com.dulno.core.maintenance.MaintenanceDatabaseTable;
 import com.dulno.core.maintenance.MaintenanceStatus;

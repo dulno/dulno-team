@@ -87,7 +87,7 @@ public final class OfferInformationController extends TeamController {
     information.put("valueCardAccess", offer.valueCardAccess());
     information.put("memberCardAccess", offer.memberCardAccess());
     information.put("analysisAccess", offer.analysisAccess());
-    information.put("balancesAccess", offer.balancesAccess());
+    information.put("balanceAccess", offer.balanceAccess());
     information.put("campaignAccess", offer.campaignAccess());
     information.put("notificationAccess", offer.notificationAccess());
     return information;

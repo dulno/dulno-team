@@ -11,6 +11,7 @@ import com.google.common.collect.Maps;
 import com.stripe.StripeClient;
 import com.stripe.model.Invoice;
 import com.stripe.model.PaymentIntent;
+import com.stripe.param.InvoicePaymentListParams;
 import com.stripe.param.PaymentIntentListParams;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -77,7 +78,7 @@ public final class PartnerPaymentController extends TeamController {
       var payments = stripeClient.paymentIntents().list(parameters);
       var information = Lists.newArrayList();
       for (var payment : payments.getData()) {
-        var invoice = stripeClient.invoices().retrieve(payment.getInvoice());
+        var invoice = findPaymentInvoice(payment);
         information.add(assemblyPaymentInformation(payment, invoice));
       }
       return Map.of("payments", information);
@@ -85,6 +86,23 @@ public final class PartnerPaymentController extends TeamController {
       errorRepository.processError(exception);
       return Maps.newHashMap();
     }
+  }
+
+  private Invoice findPaymentInvoice(
+    PaymentIntent paymentIntent
+  ) throws Exception {
+    var paymentParams = InvoicePaymentListParams.Payment.builder()
+      .setType(InvoicePaymentListParams.Payment.Type.PAYMENT_INTENT)
+      .setPaymentIntent(paymentIntent.getId()).build();
+    var listParams = InvoicePaymentListParams.builder()
+      .setPayment(paymentParams).build();
+    var invoicePayments = stripeClient.invoicePayments().list(listParams);
+    if (invoicePayments.getData().isEmpty()) {
+      throw new IllegalStateException("No invoice found for PaymentIntent " +
+        paymentIntent.getId());
+    }
+    return stripeClient.invoices().retrieve(
+      invoicePayments.getData().get(0).getInvoice());
   }
 
   private Map<String, Object> assemblyPaymentInformation(

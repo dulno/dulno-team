@@ -4,8 +4,8 @@ import java.util.zip.GZIPInputStream
 
 plugins {
   id("java")
-  id("io.freefair.lombok") version "8.13"
-  id("org.springframework.boot") version "3.4.3"
+  id("io.freefair.lombok") version "8.13.1"
+  id("org.springframework.boot") version "3.4.5"
 }
 
 group = "com.dulno"
@@ -29,32 +29,32 @@ repositories {
 }
 
 dependencies {
-  testCompileOnly(platform("org.junit:junit-bom:5.12.0"))
-  testCompileOnly("org.junit.jupiter:junit-jupiter:5.12.0")
+  testCompileOnly(platform("org.junit:junit-bom:5.12.2"))
+  testCompileOnly("org.junit.jupiter:junit-jupiter:5.12.2")
 
   implementation("com.dulno:core:1.0.0-SNAPSHOT")
 
   implementation("com.google.inject:guice:7.0.0")
 
-  implementation("com.google.guava:guava:33.4.0-jre")
+  implementation("com.google.guava:guava:33.4.8-jre")
 
-  implementation("org.projectlombok:lombok:1.18.36")
-  annotationProcessor("org.projectlombok:lombok:1.18.36")
-  testImplementation("org.projectlombok:lombok:1.18.36")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
+  implementation("org.projectlombok:lombok:1.18.38")
+  annotationProcessor("org.projectlombok:lombok:1.18.38")
+  testImplementation("org.projectlombok:lombok:1.18.38")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
 
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 
   implementation("org.json:json:20250107")
-  implementation("commons-io:commons-io:2.18.0")
+  implementation("commons-io:commons-io:2.19.0")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:3.4.3")
+  implementation("org.springframework.boot:spring-boot-starter-web:3.4.5")
 
   implementation("io.jsonwebtoken:jjwt:0.12.6")
 
   implementation("com.sun.mail:javax.mail:1.6.2")
 
-  implementation("com.stripe:stripe-java:28.4.0")
+  implementation("com.stripe:stripe-java:29.1.0")
 
   implementation("dev.samstevens.totp:totp:1.7.1")
 

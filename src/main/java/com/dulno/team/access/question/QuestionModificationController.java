@@ -92,8 +92,7 @@ public final class QuestionModificationController extends TeamController {
   ) {
     question.resetExpiration();
     questionDatabaseTable.updateQuestion(question);
-    supportMail.send(question.sender(), "Re: " + question.title(), message,
-      "text/html; charset=utf-8")
+    supportMail.send(question.sender(), "de", "Re: " + question.title(), message)
       .thenAccept(publicId -> questionMessageDatabaseTable.insertQuestionMessage(
         messageId, publicId, question.id(), staff.id().toString(),
         QuestionMessageSenderType.TEAM, message, System.currentTimeMillis()));

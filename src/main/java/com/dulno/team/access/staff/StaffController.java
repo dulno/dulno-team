@@ -96,7 +96,7 @@ public final class StaffController extends TeamController {
     staffVerificationDatabaseTable.insertVerification(id, token);
     var body = String.format(ONBOARDING_EMAIL_BODY, name,
       String.format(ONBOARDING_URL, environment.domain(), id.toString(), token));
-    verificationMail.send(email, "en", ONBOARDING_EMAIL_TITLE, body);
+    verificationMail.send(email, "de", ONBOARDING_EMAIL_TITLE, body);
   }
 
   @RequestMapping(path = "/staff/remove/", method = RequestMethod.POST)

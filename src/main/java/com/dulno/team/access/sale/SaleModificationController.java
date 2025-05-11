@@ -90,8 +90,7 @@ public final class SaleModificationController extends TeamController {
   ) {
     sale.resetExpiration();
     saleDatabaseTable.updateSale(sale);
-    saleMail.send(sale.sender(), "Re: " + sale.title(), message,
-      "text/html; charset=utf-8")
+    saleMail.send(sale.sender(), "de", "Re: " + sale.title(), message)
       .thenAccept(publicId -> saleMessageDatabaseTable.insertSaleMessage(
         messageId, publicId, sale.id(), staff.id().toString(),
         SaleMessageSenderType.TEAM, message, System.currentTimeMillis()));

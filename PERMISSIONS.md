@@ -71,19 +71,20 @@ The Sales section contains permissions required for listing, viewing, answering,
 
 The Partners section contains permissions required for viewing and editing the bundle and payments of the partners.
 
-| Permission                   | Description                                            |
-|------------------------------|--------------------------------------------------------|
-| `partners.find`              | Allows listing all partners.                           |
-| `partner.find`               | Allows viewing an individual partner.                  |
-| `partner.bundle.find`        | Allows viewing the bundle of a partner.                |
-| `partner.bundle.change`      | Allows changing the bundle of a partner.               |
-| `partner.bundle.delete`      | Allows deleting the bundle of a partner.               |
-| `partner.payments.find`      | Allows viewing the payments of a partner.              |
-| `partner.termination.status` | Allows retrieving the termination status of a partner. |
-| `partner.bundle.terminate`   | Allows terminate the bundle of a partner.              |
-| `partner.cards.find`         | Allows viewing the cards of a partner.                 |
-| `partner.locations.find`     | Allows viewing the locations of a partner.             |
-| `partner.links.find`         | Allows viewing the links of a partner.                 |
+| Permission                    | Description                                            |
+|-------------------------------|--------------------------------------------------------|
+| `partners.find`               | Allows listing all partners.                           |
+| `partner.find`                | Allows viewing an individual partner.                  |
+| `partner.visibility.change`   | Allows changing the visibility of a partner.           |
+| `partner.bundle.find`         | Allows viewing the bundle of a partner.                |
+| `partner.bundle.change`       | Allows changing the bundle of a partner.               |
+| `partner.bundle.delete`       | Allows deleting the bundle of a partner.               |
+| `partner.payments.find`       | Allows viewing the payments of a partner.              |
+| `partner.termination.status`  | Allows retrieving the termination status of a partner. |
+| `partner.bundle.terminate`    | Allows terminate the bundle of a partner.              |
+| `partner.cards.find`          | Allows viewing the cards of a partner.                 |
+| `partner.locations.find`      | Allows viewing the locations of a partner.             |
+| `partner.links.find`          | Allows viewing the links of a partner.                 |
 
 ---
 

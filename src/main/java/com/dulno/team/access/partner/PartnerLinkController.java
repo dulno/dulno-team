@@ -40,7 +40,7 @@ public final class PartnerLinkController extends TeamController {
   }
 
   @RequestMapping(path = "/partner/links/find/", method = RequestMethod.POST)
-  public CompletableFuture<Map<String, Object>> findPartner(
+  public CompletableFuture<Map<String, Object>> findPartnerLinks(
     HttpServletRequest request, @RequestBody String payload,
     HttpServletResponse response
   ) {
@@ -48,10 +48,10 @@ public final class PartnerLinkController extends TeamController {
     var partnerId = body.getUUID("partner");
     return staffHasPermission(findStaffId(request), "partner.links.find")
       .thenCompose(hasPermission -> partnerDatabaseTable.partnerExists(partnerId)
-        .thenCompose(exists -> findPartner(partnerId, hasPermission, exists)));
+        .thenCompose(exists -> findPartnerLinks(partnerId, hasPermission, exists)));
   }
 
-  public CompletableFuture<Map<String, Object>> findPartner(
+  public CompletableFuture<Map<String, Object>> findPartnerLinks(
     UUID partnerId, boolean hasPermission, boolean partnerExists
   ) {
     if (!hasPermission) {
@@ -61,10 +61,10 @@ public final class PartnerLinkController extends TeamController {
       return CompletableFuture.completedFuture(Map.of("found", false));
     }
     return partnerDatabaseTable.findPartner(partnerId)
-      .thenCompose(this::collectPartnerInformation);
+      .thenCompose(this::collectPartnerLinksInformation);
   }
 
-  private CompletableFuture<Map<String, Object>> collectPartnerInformation(
+  private CompletableFuture<Map<String, Object>> collectPartnerLinksInformation(
     Partner partner
   ) {
     return partnerLinkDatabaseTable.findPartnerLinks(partner.id())

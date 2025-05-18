@@ -2,6 +2,8 @@ package com.dulno.team.access.partner;
 
 import com.dulno.core.bundle.BundleDatabaseTable;
 import com.dulno.core.bundle.BundlePresetRepository;
+import com.dulno.core.card.CardDatabaseTable;
+import com.dulno.core.card.logo.CardLogoDatabaseTable;
 import com.dulno.core.partner.PartnerDatabaseTable;
 import com.dulno.core.partner.link.PartnerLinkDatabaseTable;
 import com.dulno.core.partner.location.PartnerLocationDatabaseTable;
@@ -25,6 +27,8 @@ public class PartnerContextInitializer implements ApplicationContextInitializer<
   private final PartnerLogoDatabaseTable partnerLogoDatabaseTable;
   private final PartnerLocationDatabaseTable partnerLocationDatabaseTable;
   private final PartnerLinkDatabaseTable partnerLinkDatabaseTable;
+  private final CardDatabaseTable cardDatabaseTable;
+  private final CardLogoDatabaseTable cardLogoDatabaseTable;
   private final BundleDatabaseTable bundleDatabaseTable;
   private final BundlePresetRepository bundlePresetRepository;
   private final StripeDatabaseTable stripeDatabaseTable;
@@ -43,6 +47,8 @@ public class PartnerContextInitializer implements ApplicationContextInitializer<
       partnerLocationDatabaseTable);
     beanFactory.registerSingleton("partnerLinkDatabaseTable",
       partnerLinkDatabaseTable);
+    beanFactory.registerSingleton("cardDatabaseTable", cardDatabaseTable);
+    beanFactory.registerSingleton("cardLogoDatabaseTable", cardLogoDatabaseTable);
     beanFactory.registerSingleton("bundleDatabaseTable", bundleDatabaseTable);
     beanFactory.registerSingleton("bundlePresetRepository",
       bundlePresetRepository);

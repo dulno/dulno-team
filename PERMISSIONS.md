@@ -81,6 +81,8 @@ The Partners section contains permissions required for viewing and editing the b
 | `partner.payments.find`      | Allows viewing the payments of a partner.              |
 | `partner.termination.status` | Allows retrieving the termination status of a partner. |
 | `partner.bundle.terminate`   | Allows terminate the bundle of a partner.              |
+| `partner.locations.find`     | Allows viewing the locations of a partner.             |
+| `partner.links.find`         | Allows viewing the links of a partner.                 |
 
 ---
 

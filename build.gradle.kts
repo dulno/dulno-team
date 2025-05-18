@@ -45,7 +45,7 @@ dependencies {
 
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 
-  implementation("org.json:json:20250107")
+  implementation("org.json:json:20250517")
   implementation("commons-io:commons-io:2.19.0")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.4.5")

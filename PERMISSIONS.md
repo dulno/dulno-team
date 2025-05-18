@@ -13,10 +13,11 @@ This documentation outlines the various permissions required across different ar
 6. [Members](#members)
 7. [Stamps](#stamps)
 8. [Offers](#offers)
-9. [Maintenance](#maintenance)
-10. [Cluster](#cluster)
-11. [Groups](#groups)
-12. [Staff](#staff)
+9. [Statistics](#statistics)
+10. [Maintenance](#maintenance)
+11. [Cluster](#cluster)
+12. [Groups](#groups)
+13. [Staff](#staff)
 
 ---
 
@@ -124,7 +125,17 @@ The Offers section contains permissions required for listing, viewing, creating 
 
 ---
 
-## 9. Maintenance
+## 9. Statistics
+
+The Statistics section contains permissions required for viewing the statistics.
+
+| Permission         | Description                    |
+|--------------------|--------------------------------|
+| `statistics.find`  | Allows viewing all statistics. |
+
+---
+
+## 10. Maintenance
 
 The Maintenance section contains permissions required for listing, creating, finishing and deleting maintenance.
 
@@ -135,7 +146,7 @@ The Maintenance section contains permissions required for listing, creating, fin
 | `maintenance.finish` | Allows finishing a maintenance.                    |
 | `maintenance.delete` | Allows deleting a maintenance.                     |
 
-## 10. Cluster
+## 11. Cluster
 
 The Cluster section contains permissions required for monitoring and editing the state of the cluster.
 
@@ -161,7 +172,7 @@ The Cluster section contains permissions required for monitoring and editing the
 
 ---
 
-## 11. Groups
+## 12. Groups
 
 The Groups section contains permissions required for listing, adding, removing, renaming and editing groups.
 
@@ -178,7 +189,7 @@ The Groups section contains permissions required for listing, adding, removing, 
 
 ---
 
-## 12. Staff
+## 13. Staff
 
 The Staff section contains permissions required for listing, adding, removing and editing staff.
 

@@ -28,13 +28,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-public final class PartnerInformationController extends TeamController {
+public final class PartnerGeneralController extends TeamController {
   private final PartnerDatabaseTable partnerDatabaseTable;
   private final PartnerMemberDatabaseTable partnerMemberDatabaseTable;
   private final PartnerLogoDatabaseTable partnerLogoDatabaseTable;
   private final MemberDatabaseTable memberDatabaseTable;
 
-  private PartnerInformationController(
+  private PartnerGeneralController(
     Key secretKey, StaffDatabaseTable staffDatabaseTable,
     GroupDatabaseTable groupDatabaseTable,
     PartnerDatabaseTable partnerDatabaseTable,
@@ -112,6 +112,7 @@ public final class PartnerInformationController extends TeamController {
     information.put("id", partner.id());
     information.put("name", partner.name());
     information.put("description", partner.description());
+    information.put("visibility", partner.visibility());
     information.put("accession", partner.accession());
     information.put("logoId", logo.logoId());
     information.put("logo", Base64.getEncoder().encodeToString(logo.content()));
@@ -124,5 +125,37 @@ public final class PartnerInformationController extends TeamController {
     }
     information.put("members", membersInformation);
     return information;
+  }
+
+  @RequestMapping(path = "/partner/visibility/change/", method = RequestMethod.POST)
+  public void changePartnerVisibility(
+    HttpServletRequest request, @RequestBody String payload,
+    HttpServletResponse response
+  ) {
+    var body = DulnoRequestBody.of(payload, response);
+    var partnerId = body.getUUID("partner");
+    var visibility = PartnerVisibility.valueOf(body.getString("visibility"));
+    staffHasPermission(findStaffId(request), "partner.visibility.change")
+      .thenAccept(hasPermission -> partnerDatabaseTable.partnerExists(partnerId)
+        .thenAccept(exists -> changePartnerVisibility(partnerId, visibility,
+          hasPermission, exists)));
+  }
+
+  public void changePartnerVisibility(
+    UUID partnerId, PartnerVisibility visibility, boolean hasPermission,
+    boolean partnerExists
+  ) {
+    if (!hasPermission || !partnerExists) {
+      return;
+    }
+    partnerDatabaseTable.findPartner(partnerId)
+      .thenAccept(partner -> changePartnerVisibility(partner, visibility));
+  }
+
+  private void changePartnerVisibility(
+    Partner partner, PartnerVisibility visibility
+  ) {
+    partner.changeVisibility(visibility);
+    partnerDatabaseTable.updatePartner(partner);
   }
 }

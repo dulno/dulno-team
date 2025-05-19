@@ -61,6 +61,7 @@ public final class StampInformationController extends TeamController {
     var information = Maps.<String, Object>newHashMap();
     information.put("id", stamp.id());
     information.put("name", stamp.name());
+    information.put("type", stamp.type().toString());
     information.put("creation", stamp.creation());
     return information;
   }

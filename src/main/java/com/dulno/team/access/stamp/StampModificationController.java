@@ -72,6 +72,38 @@ public final class StampModificationController extends TeamController {
         null, StampAssignmentRole.UNASSIGNED, System.currentTimeMillis())));
   }
 
+  @RequestMapping(path = "/stamp/change/", method = RequestMethod.POST)
+  public void changeStamp(
+    HttpServletRequest request, @RequestBody String payload,
+    HttpServletResponse response
+  ) {
+    var body = DulnoRequestBody.of(payload, response);
+    var stampId = body.getUUID("stamp");
+    var name = body.getString("name");
+    var type = StampType.valueOf(body.getString("type"));
+    staffHasPermission(findStaffId(request), "stamp.change")
+      .thenAccept(hasPermission -> stampDatabaseTable.stampExists(stampId)
+        .thenAccept(exists -> changeStamp(stampId, name, type,
+          hasPermission, exists)));
+  }
+
+  private void changeStamp(
+    UUID stampId, String name, StampType type, boolean hasPermission,
+    boolean stampExists
+  ) {
+    if (!hasPermission || !stampExists) {
+      return;
+    }
+    stampDatabaseTable.findStamp(stampId)
+      .thenAccept(stamp -> changeStamp(stamp, name, type));
+  }
+
+  private void changeStamp(Stamp stamp, String name, StampType type) {
+    stamp.changeName(name);
+    stamp.changeType(type);
+    stampDatabaseTable.updateStamp(stamp);
+  }
+
   @RequestMapping(path = "/stamp/delete/", method = RequestMethod.POST)
   public void deleteStamp(
     HttpServletRequest request, @RequestBody String payload,

@@ -13,10 +13,11 @@ This documentation outlines the various permissions required across different ar
 6. [Members](#members)
 7. [Stamps](#stamps)
 8. [Offers](#offers)
-9. [Maintenance](#maintenance)
-10. [Cluster](#cluster)
-11. [Groups](#groups)
-12. [Staff](#staff)
+9. [Statistics](#statistics)
+10. [Maintenance](#maintenance)
+11. [Cluster](#cluster)
+12. [Groups](#groups)
+13. [Staff](#staff)
 
 ---
 
@@ -70,16 +71,20 @@ The Sales section contains permissions required for listing, viewing, answering,
 
 The Partners section contains permissions required for viewing and editing the bundle and payments of the partners.
 
-| Permission                   | Description                                            |
-|------------------------------|--------------------------------------------------------|
-| `partners.find`              | Allows listing all partners.                           |
-| `partner.find`               | Allows viewing an individual partner.                  |
-| `partner.bundle.find`        | Allows viewing the bundle of a partner.                |
-| `partner.bundle.change`      | Allows changing the bundle of a partner.               |
-| `partner.bundle.delete`      | Allows deleting the bundle of a partner.               |
-| `partner.payments.find`      | Allows viewing the payments of a partner.              |
-| `partner.termination.status` | Allows retrieving the termination status of a partner. |
-| `partner.bundle.terminate`   | Allows terminate the bundle of a partner.              |
+| Permission                    | Description                                            |
+|-------------------------------|--------------------------------------------------------|
+| `partners.find`               | Allows listing all partners.                           |
+| `partner.find`                | Allows viewing an individual partner.                  |
+| `partner.visibility.change`   | Allows changing the visibility of a partner.           |
+| `partner.bundle.find`         | Allows viewing the bundle of a partner.                |
+| `partner.bundle.change`       | Allows changing the bundle of a partner.               |
+| `partner.bundle.delete`       | Allows deleting the bundle of a partner.               |
+| `partner.payments.find`       | Allows viewing the payments of a partner.              |
+| `partner.termination.status`  | Allows retrieving the termination status of a partner. |
+| `partner.bundle.terminate`    | Allows terminate the bundle of a partner.              |
+| `partner.cards.find`          | Allows viewing the cards of a partner.                 |
+| `partner.locations.find`      | Allows viewing the locations of a partner.             |
+| `partner.links.find`          | Allows viewing the links of a partner.                 |
 
 ---
 
@@ -105,6 +110,7 @@ The Stamps section contains permissions required for viewing and editing the sta
 |----------------|-----------------------------------------|
 | `stamps.find`  | Allows listing all stamps of a partner. |
 | `stamp.create` | Allows creating a new stamp.            |
+| `stamp.change` | Allows editing a stamp.                 |
 | `stamp.delete` | Allows deleting a stamp.                |
 | `stamp.setup`  | Allows setting up a stamp.              |
 
@@ -124,7 +130,17 @@ The Offers section contains permissions required for listing, viewing, creating 
 
 ---
 
-## 9. Maintenance
+## 9. Statistics
+
+The Statistics section contains permissions required for viewing the statistics.
+
+| Permission         | Description                    |
+|--------------------|--------------------------------|
+| `statistics.find`  | Allows viewing all statistics. |
+
+---
+
+## 10. Maintenance
 
 The Maintenance section contains permissions required for listing, creating, finishing and deleting maintenance.
 
@@ -135,7 +151,7 @@ The Maintenance section contains permissions required for listing, creating, fin
 | `maintenance.finish` | Allows finishing a maintenance.                    |
 | `maintenance.delete` | Allows deleting a maintenance.                     |
 
-## 10. Cluster
+## 11. Cluster
 
 The Cluster section contains permissions required for monitoring and editing the state of the cluster.
 
@@ -161,7 +177,7 @@ The Cluster section contains permissions required for monitoring and editing the
 
 ---
 
-## 11. Groups
+## 12. Groups
 
 The Groups section contains permissions required for listing, adding, removing, renaming and editing groups.
 
@@ -178,7 +194,7 @@ The Groups section contains permissions required for listing, adding, removing, 
 
 ---
 
-## 12. Staff
+## 13. Staff
 
 The Staff section contains permissions required for listing, adding, removing and editing staff.
 

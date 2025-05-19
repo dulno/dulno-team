@@ -15,6 +15,7 @@ import com.dulno.team.access.question.QuestionContextInitializer;
 import com.dulno.team.access.sale.SaleContextInitializer;
 import com.dulno.team.access.setting.SettingContextInitializer;
 import com.dulno.team.access.stamp.StampContextInitializer;
+import com.dulno.team.access.statistic.StatisticContextInitializer;
 import com.dulno.team.access.ticket.TicketContextInitializer;
 import com.dulno.team.access.verification.VerificationContextInitializer;
 import com.dulno.team.command.GroupCommand;
@@ -76,5 +77,6 @@ public class TeamApplication {
     application.addInitializers(injector.getInstance(OfferContextInitializer.class));
     application.addInitializers(injector.getInstance(SettingContextInitializer.class));
     application.addInitializers(injector.getInstance(ClusterContextInitializer.class));
+    application.addInitializers(injector.getInstance(StatisticContextInitializer.class));
   }
 }

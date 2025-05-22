@@ -15,7 +15,6 @@ import com.dulno.core.mail.MailFactory;
 import com.dulno.core.mail.MailInjectionModule;
 import com.dulno.core.maintenance.MaintenanceInjectionModule;
 import com.dulno.core.member.MemberInjectionModule;
-import com.dulno.core.member.session.SessionInjectionModule;
 import com.dulno.core.offer.OfferInjectionModule;
 import com.dulno.core.partner.PartnerInjectionModule;
 import com.dulno.core.question.QuestionInjectionModule;
@@ -63,7 +62,6 @@ public final class TeamInjectionModule extends AbstractModule {
     install(CardInjectionModule.create());
     install(ScanInjectionModule.create());
     install(UserInjectionModule.create());
-    install(SessionInjectionModule.create());
     install(MailInjectionModule.create());
     install(BundleInjectionModule.create());
     install(TicketInjectionModule.create());

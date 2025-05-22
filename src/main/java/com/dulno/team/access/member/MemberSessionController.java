@@ -1,10 +1,10 @@
 package com.dulno.team.access.member;
 
+import com.dulno.core.member.session.MemberSession;
+import com.dulno.core.member.session.MemberSessionDatabaseTable;
 import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.member.MemberDatabaseTable;
-import com.dulno.core.member.session.Session;
-import com.dulno.core.member.session.SessionDatabaseTable;
-import com.dulno.core.member.session.SessionStatus;
+import com.dulno.core.session.SessionStatus;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
 import com.dulno.team.staff.StaffDatabaseTable;
@@ -24,12 +24,13 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 public final class MemberSessionController extends TeamController {
   private final MemberDatabaseTable memberDatabaseTable;
-  private final SessionDatabaseTable sessionDatabaseTable;
+  private final MemberSessionDatabaseTable sessionDatabaseTable;
 
   private MemberSessionController(
     Key secretKey, StaffDatabaseTable staffDatabaseTable,
-    GroupDatabaseTable groupDatabaseTable, MemberDatabaseTable memberDatabaseTable,
-    SessionDatabaseTable sessionDatabaseTable
+    GroupDatabaseTable groupDatabaseTable,
+    MemberDatabaseTable memberDatabaseTable,
+    MemberSessionDatabaseTable sessionDatabaseTable
   ) {
     super(secretKey, staffDatabaseTable, groupDatabaseTable);
     this.memberDatabaseTable = memberDatabaseTable;
@@ -61,7 +62,7 @@ public final class MemberSessionController extends TeamController {
         .map(this::assemblySessionInformation).toList()));
   }
 
-  private Map<String, Object> assemblySessionInformation(Session session) {
+  private Map<String, Object> assemblySessionInformation(MemberSession session) {
     var information = Maps.<String, Object>newHashMap();
     information.put("id", session.id());
     information.put("platform", session.devicePlatform());
@@ -107,7 +108,7 @@ public final class MemberSessionController extends TeamController {
       .thenAccept(session -> closeMemberSession(session, memberId));
   }
 
-  private void closeMemberSession(Session session, UUID memberId) {
+  private void closeMemberSession(MemberSession session, UUID memberId) {
     if (!session.memberId().equals(memberId)) {
       return;
     }

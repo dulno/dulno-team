@@ -478,7 +478,7 @@ public final class ClusterBackupController extends TeamController {
     int totalPodNumber, List<String> nextPods
   ) throws Exception {
     kubernetesCoreApi.deleteNamespacedPod(pod.getMetadata().getName(),
-      pod.getMetadata().getNamespace(), null, null, null, null, null, null, null);
+      pod.getMetadata().getNamespace()).execute();
     var endTime = Instant.now().plus(Duration.ofMinutes(15));
     while (Instant.now().isBefore(endTime)) {
       Thread.sleep(2000);
@@ -507,7 +507,7 @@ public final class ClusterBackupController extends TeamController {
 
   private boolean isPodReady(V1Pod pod) throws Exception {
     var updatedPod = kubernetesCoreApi.readNamespacedPod(
-      pod.getMetadata().getName(), pod.getMetadata().getNamespace(), null);
+      pod.getMetadata().getName(), pod.getMetadata().getNamespace()).execute();
     if (updatedPod.getStatus().getStartTime().toEpochSecond() ==
       pod.getStatus().getStartTime().toEpochSecond()
     ) {
@@ -567,10 +567,8 @@ public final class ClusterBackupController extends TeamController {
 
   private List<V1Pod> fetchDatabasePods() {
     try {
-      var pods = kubernetesCoreApi.listNamespacedPod(
-        clusterConfiguration.namespace(), null, null, null, null, null, null,
-        null, null, null, null, null);
-      return pods.getItems().stream()
+      return kubernetesCoreApi.listNamespacedPod(clusterConfiguration.namespace())
+        .execute().getItems().stream()
         .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
           .anyMatch(owner -> owner.getName()
             .equals(clusterConfiguration.databaseController())))

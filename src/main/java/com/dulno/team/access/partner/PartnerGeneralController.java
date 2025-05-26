@@ -11,7 +11,7 @@ import com.dulno.core.member.MemberDatabaseTable;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
 import com.dulno.team.staff.StaffDatabaseTable;
-import com.google.common.collect.Lists;
+import com.google.api.client.util.Lists;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

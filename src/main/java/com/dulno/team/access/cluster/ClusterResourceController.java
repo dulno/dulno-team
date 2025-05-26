@@ -73,38 +73,37 @@ public final class ClusterResourceController extends TeamController {
   private CompletableFuture<V1PodList> fetchTelegrafPods() {
     var futureResponse = new CompletableFuture<V1PodList>();
     try {
-      var callback = new ApiCallback<V1PodList>() {
-        @Override
-        public void onFailure(
-          ApiException exception, int statusCode, Map<String,
+      kubernetesCoreApi
+        .listNamespacedPod(telegrafConfiguration.kubernetesNamespace())
+        .executeAsync(new ApiCallback<>() {
+          @Override
+          public void onFailure(
+            ApiException exception, int statusCode, Map<String,
             List<String>> responseHeaders
-        ) {
-          errorRepository.processError(exception);
-        }
+          ) {
+            errorRepository.processError(exception);
+          }
 
-        @Override
-        public void onSuccess(
-          V1PodList result, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete(result);
-        }
+          @Override
+          public void onSuccess(
+            V1PodList result, int statusCode,
+            Map<String, List<String>> responseHeaders
+          ) {
+            futureResponse.complete(result);
+          }
 
-        @Override
-        public void onUploadProgress(
-          long bytesWritten, long contentLength, boolean done
-        ) {
-        }
+          @Override
+          public void onUploadProgress(
+            long bytesWritten, long contentLength, boolean done
+          ) {
+          }
 
-        @Override
-        public void onDownloadProgress(
-          long bytesRead, long contentLength, boolean done
-        ) {
-        }
-      };
-      kubernetesCoreApi.listNamespacedPodAsync(
-        telegrafConfiguration.kubernetesNamespace(), null, null, null, null,
-        null, null, null, null, null, null, null, callback);
+          @Override
+          public void onDownloadProgress(
+            long bytesRead, long contentLength, boolean done
+          ) {
+          }
+        });
     } catch (Exception exception) {
       errorRepository.processError(exception);
       futureResponse.complete(null);
@@ -115,37 +114,35 @@ public final class ClusterResourceController extends TeamController {
   private CompletableFuture<V1NodeList> fetchNodes() {
     var futureResponse = new CompletableFuture<V1NodeList>();
     try {
-      var callback = new ApiCallback<V1NodeList>() {
-        @Override
-        public void onFailure(
-          ApiException exception, int statusCode, Map<String,
+      kubernetesCoreApi.listNode().executeAsync(new ApiCallback<>() {
+          @Override
+          public void onFailure(
+            ApiException exception, int statusCode, Map<String,
             List<String>> responseHeaders
-        ) {
-          errorRepository.processError(exception);
-        }
+          ) {
+            errorRepository.processError(exception);
+          }
 
-        @Override
-        public void onSuccess(
-          V1NodeList result, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete(result);
-        }
+          @Override
+          public void onSuccess(
+            V1NodeList result, int statusCode,
+            Map<String, List<String>> responseHeaders
+          ) {
+            futureResponse.complete(result);
+          }
 
-        @Override
-        public void onUploadProgress(
-          long bytesWritten, long contentLength, boolean done
-        ) {
-        }
+          @Override
+          public void onUploadProgress(
+            long bytesWritten, long contentLength, boolean done
+          ) {
+          }
 
-        @Override
-        public void onDownloadProgress(
-          long bytesRead, long contentLength, boolean done
-        ) {
-        }
-      };
-      kubernetesCoreApi.listNodeAsync(null, null, null, null, null, null, null,
-        null, null, null, null, callback);
+          @Override
+          public void onDownloadProgress(
+            long bytesRead, long contentLength, boolean done
+          ) {
+          }
+        });
     } catch (Exception exception) {
       errorRepository.processError(exception);
       futureResponse.complete(null);

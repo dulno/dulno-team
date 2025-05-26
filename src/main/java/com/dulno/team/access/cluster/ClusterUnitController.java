@@ -65,37 +65,36 @@ public final class ClusterUnitController extends TeamController {
     }
     var futureResponse = new CompletableFuture<Map<String, Object>>();
     try {
-      var callback = new ApiCallback<V1PodList>() {
-        @Override
-        public void onFailure(
-          ApiException exception, int statusCode, Map<String,
+      kubernetesCoreApi.listNamespacedPod(clusterConfiguration.namespace())
+        .executeAsync(new ApiCallback<>() {
+          @Override
+          public void onFailure(
+            ApiException exception, int statusCode, Map<String,
             List<String>> responseHeaders
-        ) {
-          errorRepository.processError(exception);
-        }
+          ) {
+            errorRepository.processError(exception);
+          }
 
-        @Override
-        public void onSuccess(
-          V1PodList result, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          findClusterUnits(result).thenAccept(futureResponse::complete);
-        }
+          @Override
+          public void onSuccess(
+            V1PodList result, int statusCode,
+            Map<String, List<String>> responseHeaders
+          ) {
+            findClusterUnits(result).thenAccept(futureResponse::complete);
+          }
 
-        @Override
-        public void onUploadProgress(
-          long bytesWritten, long contentLength, boolean done
-        ) {
-        }
+          @Override
+          public void onUploadProgress(
+            long bytesWritten, long contentLength, boolean done
+          ) {
+          }
 
-        @Override
-        public void onDownloadProgress(
-          long bytesRead, long contentLength, boolean done
-        ) {
-        }
-      };
-      kubernetesCoreApi.listNamespacedPodAsync(clusterConfiguration.namespace(),
-        null, null, null, null, null, null, null, null, null, null, null, callback);
+          @Override
+          public void onDownloadProgress(
+            long bytesRead, long contentLength, boolean done
+          ) {
+          }
+        });
     } catch (Exception exception) {
       errorRepository.processError(exception);
       futureResponse.complete(Maps.newHashMap());
@@ -150,41 +149,41 @@ public final class ClusterUnitController extends TeamController {
   ) {
     var futureResponse = new CompletableFuture<Map<String, Object>>();
     try {
-      var callback = new ApiCallback<V1Deployment>() {
-        @Override
-        public void onFailure(
-          ApiException exception, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          errorRepository.processError(exception);
-        }
+      kubernetesAppsApi
+        .readNamespacedDeployment(unitName, clusterConfiguration.namespace())
+        .executeAsync(new ApiCallback<>() {
+          @Override
+          public void onFailure(
+            ApiException exception, int statusCode, Map<String,
+            List<String>> responseHeaders
+          ) {
+            errorRepository.processError(exception);
+          }
 
-        @Override
-        public void onSuccess(
-          V1Deployment result, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete(Map.of("name", unitName, "type", "DEPLOYMENT",
-            "desiredReplicas", result.getSpec().getReplicas() != null ?
-              result.getSpec().getReplicas() : 0,
-            "availableReplicas",result.getStatus().getReadyReplicas() != null ?
-              result.getStatus().getReadyReplicas() : 0));
-        }
+          @Override
+          public void onSuccess(
+            V1Deployment result, int statusCode,
+            Map<String, List<String>> responseHeaders
+          ) {
+            futureResponse.complete(Map.of("name", unitName, "type", "DEPLOYMENT",
+              "desiredReplicas", result.getSpec().getReplicas() != null ?
+                result.getSpec().getReplicas() : 0,
+              "availableReplicas",result.getStatus().getReadyReplicas() != null ?
+                result.getStatus().getReadyReplicas() : 0));
+          }
 
-        @Override
-        public void onUploadProgress(
-          long bytesWritten, long contentLength, boolean done
-        ) {
-        }
+          @Override
+          public void onUploadProgress(
+            long bytesWritten, long contentLength, boolean done
+          ) {
+          }
 
-        @Override
-        public void onDownloadProgress(
-          long bytesRead, long contentLength, boolean done
-        ) {
-        }
-      };
-      kubernetesAppsApi.readNamespacedDeploymentAsync(unitName,
-        clusterConfiguration.namespace(), null, callback);
+          @Override
+          public void onDownloadProgress(
+            long bytesRead, long contentLength, boolean done
+          ) {
+          }
+        });
     } catch (Exception exception) {
       errorRepository.processError(exception);
       futureResponse.complete(Maps.newHashMap());
@@ -197,41 +196,41 @@ public final class ClusterUnitController extends TeamController {
   ) {
     var futureResponse = new CompletableFuture<Map<String, Object>>();
     try {
-      var callback = new ApiCallback<V1StatefulSet>() {
-        @Override
-        public void onFailure(
-          ApiException exception, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          errorRepository.processError(exception);
-        }
+      kubernetesAppsApi
+        .readNamespacedStatefulSet(unitName, clusterConfiguration.namespace())
+        .executeAsync(new ApiCallback<>() {
+          @Override
+          public void onFailure(
+            ApiException exception, int statusCode, Map<String,
+            List<String>> responseHeaders
+          ) {
+            errorRepository.processError(exception);
+          }
 
-        @Override
-        public void onSuccess(
-          V1StatefulSet result, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete(Map.of("name", unitName, "type", "STATEFULSET",
-            "desiredReplicas", result.getSpec().getReplicas() != null ?
-              result.getSpec().getReplicas() : 0,
-            "availableReplicas",result.getStatus().getReadyReplicas() != null ?
-              result.getStatus().getReadyReplicas() : 0));
-        }
+          @Override
+          public void onSuccess(
+            V1StatefulSet result, int statusCode,
+            Map<String, List<String>> responseHeaders
+          ) {
+            futureResponse.complete(Map.of("name", unitName, "type", "STATEFULSET",
+              "desiredReplicas", result.getSpec().getReplicas() != null ?
+                result.getSpec().getReplicas() : 0,
+              "availableReplicas",result.getStatus().getReadyReplicas() != null ?
+                result.getStatus().getReadyReplicas() : 0));
+          }
 
-        @Override
-        public void onUploadProgress(
-          long bytesWritten, long contentLength, boolean done
-        ) {
-        }
+          @Override
+          public void onUploadProgress(
+            long bytesWritten, long contentLength, boolean done
+          ) {
+          }
 
-        @Override
-        public void onDownloadProgress(
-          long bytesRead, long contentLength, boolean done
-        ) {
-        }
-      };
-      kubernetesAppsApi.readNamespacedStatefulSetAsync(unitName,
-        clusterConfiguration.namespace(), null, callback);
+          @Override
+          public void onDownloadProgress(
+            long bytesRead, long contentLength, boolean done
+          ) {
+          }
+        });
     } catch (Exception exception) {
       errorRepository.processError(exception);
       futureResponse.complete(Maps.newHashMap());
@@ -244,39 +243,39 @@ public final class ClusterUnitController extends TeamController {
   ) {
     var futureResponse = new CompletableFuture<Map<String, Object>>();
     try {
-      var callback = new ApiCallback<V1DaemonSet>() {
-        @Override
-        public void onFailure(
-          ApiException exception, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          errorRepository.processError(exception);
-        }
+      kubernetesAppsApi
+        .readNamespacedDaemonSet(unitName, clusterConfiguration.namespace())
+        .executeAsync(new ApiCallback<>() {
+          @Override
+          public void onFailure(
+            ApiException exception, int statusCode, Map<String,
+            List<String>> responseHeaders
+          ) {
+            errorRepository.processError(exception);
+          }
 
-        @Override
-        public void onSuccess(
-          V1DaemonSet result, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete(Map.of("name", unitName, "type", "DAEMONSET",
-            "desiredReplicas", result.getStatus().getDesiredNumberScheduled(),
-            "availableReplicas", result.getStatus().getNumberReady()));
-        }
+          @Override
+          public void onSuccess(
+            V1DaemonSet result, int statusCode,
+            Map<String, List<String>> responseHeaders
+          ) {
+            futureResponse.complete(Map.of("name", unitName, "type", "DAEMONSET",
+              "desiredReplicas", result.getStatus().getDesiredNumberScheduled(),
+              "availableReplicas", result.getStatus().getNumberReady()));
+          }
 
-        @Override
-        public void onUploadProgress(
-          long bytesWritten, long contentLength, boolean done
-        ) {
-        }
+          @Override
+          public void onUploadProgress(
+            long bytesWritten, long contentLength, boolean done
+          ) {
+          }
 
-        @Override
-        public void onDownloadProgress(
-          long bytesRead, long contentLength, boolean done
-        ) {
-        }
-      };
-      kubernetesAppsApi.readNamespacedDaemonSetAsync(unitName,
-        clusterConfiguration.namespace(), null, callback);
+          @Override
+          public void onDownloadProgress(
+            long bytesRead, long contentLength, boolean done
+          ) {
+          }
+        });
     } catch (Exception exception) {
       errorRepository.processError(exception);
       futureResponse.complete(Maps.newHashMap());
@@ -322,42 +321,40 @@ public final class ClusterUnitController extends TeamController {
   ) {
     var futureResponse = new CompletableFuture<List<V1Pod>>();
     try {
-      var callback = new ApiCallback<V1PodList>() {
-        @Override
-        public void onFailure(
-          ApiException exception, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          errorRepository.processError(exception);
-        }
+      kubernetesCoreApi.listNamespacedPod(clusterConfiguration.namespace())
+        .executeAsync(new ApiCallback<>() {
+          @Override
+          public void onFailure(
+            ApiException exception, int statusCode, Map<String,
+            List<String>> responseHeaders
+          ) {
+            errorRepository.processError(exception);
+          }
 
-        @Override
-        public void onSuccess(
-          V1PodList result, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete(result.getItems().stream()
-            .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
-              .anyMatch(owner -> owner.getName().contains(unitName) &&
-                checkUnitOwnerMatch(owner, unitType)))
-            .toList());
-        }
+          @Override
+          public void onSuccess(
+            V1PodList result, int statusCode,
+            Map<String, List<String>> responseHeaders
+          ) {
+            futureResponse.complete(result.getItems().stream()
+              .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
+                .anyMatch(owner -> owner.getName().contains(unitName) &&
+                  checkUnitOwnerMatch(owner, unitType)))
+              .toList());
+          }
 
-        @Override
-        public void onUploadProgress(
-          long bytesWritten, long contentLength, boolean done
-        ) {
-        }
+          @Override
+          public void onUploadProgress(
+            long bytesWritten, long contentLength, boolean done
+          ) {
+          }
 
-        @Override
-        public void onDownloadProgress(
-          long bytesRead, long contentLength, boolean done
-        ) {
-        }
-      };
-      kubernetesCoreApi.listNamespacedPodAsync(clusterConfiguration.namespace(),
-        null, null, null, null, null, null, null, null, null, null, null,
-        callback);
+          @Override
+          public void onDownloadProgress(
+            long bytesRead, long contentLength, boolean done
+          ) {
+          }
+        });
     } catch (Exception exception) {
       errorRepository.processError(exception);
       futureResponse.complete(Lists.newArrayList());
@@ -433,44 +430,44 @@ public final class ClusterUnitController extends TeamController {
 
   private void restartDeployment(String unitName) throws Exception {
     var deployment = kubernetesAppsApi.readNamespacedDeployment(unitName,
-      clusterConfiguration.namespace(), null);
+      clusterConfiguration.namespace()).execute();
     var annotations = new HashMap<>(deployment.getSpec().getTemplate()
       .getMetadata().getAnnotations());
     annotations.put("kubectl.kubernetes.io/restartedAt",
       String.valueOf(System.currentTimeMillis()));
     deployment.getSpec().getTemplate().getMetadata().setAnnotations(annotations);
     kubernetesAppsApi.replaceNamespacedDeployment(unitName,
-      clusterConfiguration.namespace(), deployment, null, null, null, null);
+      clusterConfiguration.namespace(), deployment).execute();
   }
 
   private void restartStatefulSet(String unitName) throws Exception {
     var statefulSet = kubernetesAppsApi.readNamespacedStatefulSet(unitName,
-      clusterConfiguration.namespace(), null);
+      clusterConfiguration.namespace()).execute();
     var annotations = new HashMap<>(statefulSet.getSpec().getTemplate()
       .getMetadata().getAnnotations());
     annotations.put("kubectl.kubernetes.io/restartedAt",
       String.valueOf(System.currentTimeMillis()));
     statefulSet.getSpec().getTemplate().getMetadata().setAnnotations(annotations);
     kubernetesAppsApi.replaceNamespacedStatefulSet(unitName,
-      clusterConfiguration.namespace(), statefulSet, null, null, null, null);
+      clusterConfiguration.namespace(), statefulSet).execute();
   }
 
   private void restartDaemonSet(String unitName) throws Exception {
     var daemonSet = kubernetesAppsApi.readNamespacedDaemonSet(unitName,
-      clusterConfiguration.namespace(), null);
+      clusterConfiguration.namespace()).execute();
     var annotations = new HashMap<>(daemonSet.getSpec().getTemplate()
       .getMetadata().getAnnotations());
     annotations.put("kubectl.kubernetes.io/restartedAt",
       String.valueOf(System.currentTimeMillis()));
     daemonSet.getSpec().getTemplate().getMetadata().setAnnotations(annotations);
     kubernetesAppsApi.replaceNamespacedDaemonSet(unitName,
-      clusterConfiguration.namespace(), daemonSet, null, null, null, null);
+      clusterConfiguration.namespace(), daemonSet).execute();
   }
 
   private void restartJob(String unitName) throws Exception {
     deleteCurrentJobs(unitName);
     var cronJob = kubernetesBatchApi.readNamespacedCronJob(unitName,
-      clusterConfiguration.namespace(), null);
+      clusterConfiguration.namespace()).execute();
     var job = new V1Job()
       .apiVersion("batch/v1")
       .kind("Job")
@@ -487,31 +484,28 @@ public final class ClusterUnitController extends TeamController {
       .controller(false)
       .blockOwnerDeletion(false);
     job.getMetadata().setOwnerReferences(Collections.singletonList(ownerReference));
-    kubernetesBatchApi.createNamespacedJob(clusterConfiguration.namespace(), job,
-      null, null, null, null);
+    kubernetesBatchApi.createNamespacedJob(clusterConfiguration.namespace(), job)
+      .execute();
   }
 
   private void deleteCurrentJobs(String unitName) throws Exception {
-    var jobList = kubernetesBatchApi.listNamespacedJob(
-      clusterConfiguration.namespace(), null, null, null, null, null, null,
-      null, null, null, null, null);
+    var jobList = kubernetesBatchApi
+      .listNamespacedJob(clusterConfiguration.namespace()).execute();
     for (var job : jobList.getItems()) {
       if (job.getMetadata().getName().contains(unitName)) {
         var jobName = job.getMetadata().getName();
-        var podList = kubernetesCoreApi.listNamespacedPod(
-          clusterConfiguration.namespace(), null, null, null, null, null, null,
-          null, null, null, null, null);
+        var podList = kubernetesCoreApi
+          .listNamespacedPod(clusterConfiguration.namespace()).execute();
         for (var pod : podList.getItems()) {
           var labels = pod.getMetadata().getLabels();
           if (labels.containsKey("job-name") && labels.get("job-name").equals(jobName)) {
             kubernetesCoreApi.deleteNamespacedPod(pod.getMetadata().getName(),
-              clusterConfiguration.namespace(), null, null, null, null, null,
-              null, null);
+              clusterConfiguration.namespace()).execute();
           }
         }
-        kubernetesBatchApi.deleteNamespacedJob(jobName,
-          clusterConfiguration.namespace(), null, null, null, null, null,
-          null, null);
+        kubernetesBatchApi
+          .deleteNamespacedJob(jobName, clusterConfiguration.namespace())
+          .execute();
       }
     }
   }
@@ -544,7 +538,7 @@ public final class ClusterUnitController extends TeamController {
       spec.setReplicas(replicas);
       scale.setSpec(spec);
       kubernetesAppsApi.replaceNamespacedDeploymentScale(unitName,
-        clusterConfiguration.namespace(), scale, null, null, null, null);
+        clusterConfiguration.namespace(), scale).execute();
     } catch (Exception exception) {
       errorRepository.processError(exception);
     }
@@ -575,37 +569,36 @@ public final class ClusterUnitController extends TeamController {
   private CompletableFuture<V1Pod> fetchClusterPod(String podName) {
     var futureResponse = new CompletableFuture<V1Pod>();
     try {
-      var callback = new ApiCallback<V1Pod>() {
-        @Override
-        public void onFailure(
-          ApiException exception, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete(null);
-        }
+      kubernetesCoreApi.readNamespacedPod(podName, clusterConfiguration.namespace())
+        .executeAsync(new ApiCallback<>() {
+          @Override
+          public void onFailure(
+            ApiException exception, int statusCode, Map<String,
+            List<String>> responseHeaders
+          ) {
+            futureResponse.complete(null);
+          }
 
-        @Override
-        public void onSuccess(
-          V1Pod result, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete(result);
-        }
+          @Override
+          public void onSuccess(
+            V1Pod result, int statusCode,
+            Map<String, List<String>> responseHeaders
+          ) {
+            futureResponse.complete(result);
+          }
 
-        @Override
-        public void onUploadProgress(
-          long bytesWritten, long contentLength, boolean done
-        ) {
-        }
+          @Override
+          public void onUploadProgress(
+            long bytesWritten, long contentLength, boolean done
+          ) {
+          }
 
-        @Override
-        public void onDownloadProgress(
-          long bytesRead, long contentLength, boolean done
-        ) {
-        }
-      };
-      kubernetesCoreApi.readNamespacedPodAsync(podName,
-        clusterConfiguration.namespace(), null, callback);
+          @Override
+          public void onDownloadProgress(
+            long bytesRead, long contentLength, boolean done
+          ) {
+          }
+        });
     } catch (Exception exception) {
       errorRepository.processError(exception);
       futureResponse.complete(null);
@@ -619,38 +612,36 @@ public final class ClusterUnitController extends TeamController {
     }
     var futureResponse = new CompletableFuture<String>();
     try {
-      var callback = new ApiCallback<String>() {
-        @Override
-        public void onFailure(
-          ApiException exception, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete("");
-        }
+      kubernetesCoreApi.readNamespacedPodLog(pod.getMetadata().getName(),
+        clusterConfiguration.namespace()).executeAsync(new ApiCallback<>() {
+          @Override
+          public void onFailure(
+            ApiException exception, int statusCode, Map<String,
+            List<String>> responseHeaders
+          ) {
+            futureResponse.complete("");
+          }
 
-        @Override
-        public void onSuccess(
-          String result, int statusCode,
-          Map<String, List<String>> responseHeaders
-        ) {
-          futureResponse.complete(result);
-        }
+          @Override
+          public void onSuccess(
+            String result, int statusCode,
+            Map<String, List<String>> responseHeaders
+          ) {
+            futureResponse.complete(result);
+          }
 
-        @Override
-        public void onUploadProgress(
-          long bytesWritten, long contentLength, boolean done
-        ) {
-        }
+          @Override
+          public void onUploadProgress(
+            long bytesWritten, long contentLength, boolean done
+          ) {
+          }
 
-        @Override
-        public void onDownloadProgress(
-          long bytesRead, long contentLength, boolean done
-        ) {
-        }
-      };
-      kubernetesCoreApi.readNamespacedPodLogAsync(pod.getMetadata().getName(),
-        clusterConfiguration.namespace(), null, null, null, null, null, null,
-        null, null, null, null, callback);
+          @Override
+          public void onDownloadProgress(
+            long bytesRead, long contentLength, boolean done
+          ) {
+          }
+        });
     } catch (Exception exception) {
       errorRepository.processError(exception);
       futureResponse.complete("");
@@ -696,8 +687,8 @@ public final class ClusterUnitController extends TeamController {
       return;
     }
     try {
-      kubernetesCoreApi.deleteNamespacedPod(podName,
-        clusterConfiguration.namespace(), null, null, null, null, null, null, null);
+      kubernetesCoreApi.deleteNamespacedPod(podName, clusterConfiguration.namespace())
+        .execute();
     } catch (Exception exception) {
       errorRepository.processError(exception);
     }

@@ -3,7 +3,7 @@ package com.dulno.team.access.member;
 import com.dulno.core.mail.MailFactory;
 import com.dulno.core.mail.OutgoingMailDatabaseTable;
 import com.dulno.core.member.MemberDatabaseTable;
-import com.dulno.core.member.session.SessionDatabaseTable;
+import com.dulno.core.member.session.MemberSessionDatabaseTable;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import lombok.AccessLevel;
@@ -15,7 +15,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, onConstructor = @__({@Inject}))
 public class MemberContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
   private final MemberDatabaseTable memberDatabaseTable;
-  private final SessionDatabaseTable sessionDatabaseTable;
+  private final MemberSessionDatabaseTable memberSessionDatabaseTable;
   private final OutgoingMailDatabaseTable outgoingMailDatabaseTable;
   private final MailFactory mailFactory;
 
@@ -23,7 +23,8 @@ public class MemberContextInitializer implements ApplicationContextInitializer<C
   public void initialize(ConfigurableApplicationContext applicationContext) {
     var beanFactory = applicationContext.getBeanFactory();
     beanFactory.registerSingleton("memberDatabaseTable", memberDatabaseTable);
-    beanFactory.registerSingleton("sessionDatabaseTable", sessionDatabaseTable);
+    beanFactory.registerSingleton("memberSessionDatabaseTable",
+      memberSessionDatabaseTable);
     beanFactory.registerSingleton("outgoingMailDatabaseTable",
       outgoingMailDatabaseTable);
     beanFactory.registerSingleton("mailFactory", mailFactory);

@@ -3,7 +3,7 @@ package com.dulno.team.staff.session;
 import com.dulno.core.database.DatabaseColumn;
 import com.dulno.core.database.DatabaseRow;
 import com.dulno.core.database.DatabaseTable;
-import com.dulno.core.member.session.SessionStatus;
+import com.dulno.core.session.SessionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;

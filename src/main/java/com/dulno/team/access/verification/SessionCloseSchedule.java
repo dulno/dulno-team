@@ -1,6 +1,6 @@
 package com.dulno.team.access.verification;
 
-import com.dulno.core.member.session.SessionStatus;
+import com.dulno.core.session.SessionStatus;
 import com.dulno.team.staff.session.StaffSession;
 import com.dulno.team.staff.session.StaffSessionDatabaseTable;
 import io.jsonwebtoken.ExpiredJwtException;

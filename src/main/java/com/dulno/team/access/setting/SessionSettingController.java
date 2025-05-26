@@ -1,7 +1,7 @@
 package com.dulno.team.access.setting;
 
 import com.dulno.core.request.DulnoRequestBody;
-import com.dulno.core.member.session.SessionStatus;
+import com.dulno.core.session.SessionStatus;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
 import com.dulno.team.staff.StaffDatabaseTable;

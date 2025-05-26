@@ -2,7 +2,7 @@ package com.dulno.team.staff.session;
 
 import com.dulno.core.database.*;
 import com.dulno.core.database.condition.DatabaseCondition;
-import com.dulno.core.member.session.SessionStatus;
+import com.dulno.core.session.SessionStatus;
 import com.google.common.collect.Lists;
 
 import java.util.Comparator;

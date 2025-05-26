@@ -2,8 +2,8 @@ package com.dulno.team.access.verification;
 
 import com.dulno.core.request.DulnoRequestBody;
 import com.dulno.core.hashing.Hashing;
-import com.dulno.core.member.session.SessionStatus;
-import com.dulno.core.member.session.UserAgent;
+import com.dulno.core.session.SessionStatus;
+import com.dulno.core.session.UserAgent;
 import com.dulno.team.access.TeamController;
 import com.dulno.team.group.GroupDatabaseTable;
 import com.dulno.team.staff.Staff;

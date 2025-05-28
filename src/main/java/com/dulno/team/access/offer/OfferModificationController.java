@@ -110,17 +110,18 @@ public final class OfferModificationController extends TeamController {
     var runtime = BundleRuntime.valueOf(body.getString("runtime"));
     var price = Math.round(body.getDouble("price") * 100.0) / 100.0;
     var priceId = createStripeOffer(price);
+    var locationLimit = findBundleLocationLimit(body, preset);
     offerDatabaseTable.generateAvailableOfferId()
       .thenAccept(id -> createOffer(id, partnerId, priceId, preset, runtime,
-        price));
+        price, locationLimit));
   }
 
   private void createOffer(
     UUID id, UUID partnerId, String priceId, BundlePreset preset,
-    BundleRuntime runtime, double price
+    BundleRuntime runtime, double price, int locationLimit
   ) {
     offerDatabaseTable.insertOffer(Offer.of(id, partnerId,
-      priceId, OfferStatus.PENDING, preset, runtime, price));
+      priceId, OfferStatus.PENDING, preset, runtime, price, locationLimit));
     partnerMemberDatabaseTable.findPartnerMembers(partnerId)
       .thenAccept(memberIds -> memberIds.stream()
         .forEach(memberId -> memberDatabaseTable.findMember(memberId)
@@ -162,6 +163,13 @@ public final class OfferModificationController extends TeamController {
   private BundlePreset findBundlePreset(DulnoRequestBody body) {
     return bundlePresetRepository.findPreset(
       BundleType.valueOf(body.getString("type"))).get();
+  }
+
+  private int findBundleLocationLimit(DulnoRequestBody body, BundlePreset preset) {
+    if (!body.has("locationLimit")) {
+      return preset.locationLimit();
+    }
+    return body.getInt("locationLimit");
   }
 
   @RequestMapping(path = "/offer/withdraw/", method = RequestMethod.POST)

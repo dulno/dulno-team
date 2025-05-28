@@ -70,6 +70,7 @@ public final class PartnerBundleController extends TeamController {
     information.put("runtime", bundle.bundleRuntime().toString());
     information.put("price", bundle.price());
     information.put("expiration", bundle.expiration());
+    information.put("locationLimit", bundle.locationLimit());
     information.put("portalAccess", bundle.portalAccess());
     information.put("collectionCardAccess", bundle.collectionCardAccess());
     information.put("valueCardAccess", bundle.valueCardAccess());
@@ -105,9 +106,10 @@ public final class PartnerBundleController extends TeamController {
     var expiration = runtime.isUnbound() ? System.currentTimeMillis() +
       body.getLong("expiration") : -1;
     var price = findBundlePrice(body, preset, runtime);
+    var locationLimit = findBundleLocationLimit(body, preset);
     bundleDatabaseTable.deleteBundle(partnerId)
       .thenAccept(value -> bundleDatabaseTable.insertBundle(Bundle.of(partnerId,
-        preset, runtime, price, expiration)));
+        preset, runtime, price, expiration, locationLimit)));
     terminationDatabaseTable.deleteTermination(partnerId);
   }
 
@@ -119,6 +121,13 @@ public final class PartnerBundleController extends TeamController {
         preset.monthlyPrice() : preset.yearlyPrice()) : 0;
     }
     return body.getDouble("price");
+  }
+
+  private int findBundleLocationLimit(DulnoRequestBody body, BundlePreset preset) {
+    if (!body.has("locationLimit")) {
+      return preset.locationLimit();
+    }
+    return body.getInt("locationLimit");
   }
 
   private BundlePreset findBundlePreset(DulnoRequestBody body) {

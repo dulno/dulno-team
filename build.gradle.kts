@@ -60,7 +60,7 @@ dependencies {
 
   implementation("io.kubernetes:client-java:23.0.0")
 
-  implementation("com.maxmind.geoip2:geoip2:4.3.0")
+  implementation("com.maxmind.geoip2:geoip2:4.3.1")
 
   implementation("com.google.zxing:core:3.5.3")
   implementation("com.google.zxing:javase:3.5.3")

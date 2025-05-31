@@ -29,8 +29,8 @@ repositories {
 }
 
 dependencies {
-  testCompileOnly(platform("org.junit:junit-bom:5.12.2"))
-  testCompileOnly("org.junit.jupiter:junit-jupiter:5.12.2")
+  testCompileOnly(platform("org.junit:junit-bom:5.13.0"))
+  testCompileOnly("org.junit.jupiter:junit-jupiter:5.13.0")
 
   implementation("com.dulno:core:1.0.0-SNAPSHOT")
 
@@ -60,7 +60,7 @@ dependencies {
 
   implementation("io.kubernetes:client-java:23.0.0")
 
-  implementation("com.maxmind.geoip2:geoip2:4.3.0")
+  implementation("com.maxmind.geoip2:geoip2:4.3.1")
 
   implementation("com.google.zxing:core:3.5.3")
   implementation("com.google.zxing:javase:3.5.3")

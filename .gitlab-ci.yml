@@ -107,7 +107,7 @@ assemble_docs:
     - |
       /kaniko/executor \
         --context "$CI_PROJECT_DIR" \
-        --dockerfile "$CI_PROJECT_DIR/proxy/Dockerfile" \
+        --dockerfile "$CI_PROJECT_DIR/docs/Dockerfile" \
         --destination "$STAGING_DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:test" \
   only:
     - dev

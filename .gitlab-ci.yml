@@ -1,4 +1,5 @@
 stages:
+  - test
   - build
   - assemble
   - scan
@@ -13,155 +14,184 @@ variables:
   KUBERNETES_RESOURCE: "deployment/dulno-team-deployment"
   KUBERNETES_APP:  "dulno-team"
 
-build:
+include:
+  - project: 'dulno/dulno-template'
+    file: '/scan/scan-template.yml'
+  - project: 'dulno/dulno-template'
+    file: '/merge/merge-template.yml'
+
+test:
+  stage: test
+  image: gradle:8.14.2-jdk21
+  script:
+    - gradle test
+
+build_jar:
   stage: build
   image: gradle:8.14.2-jdk21
   script:
     - gradle bootJar
-    - gradle javadoc
-    - gradle downloadGeoLite2Database
   artifacts:
     paths:
       - build/libs/
-      - build/docs/javadoc/
+    expire_in: 1 day
+
+build_geo:
+  stage: build
+  image: gradle:8.14.2-jdk21
+  script:
+    - gradle downloadGeoLite2Database
+  artifacts:
+    paths:
       - geo/
     expire_in: 1 day
 
-assemble_staging:
-  stage: assemble
-  image: docker:cli
-  services:
-    - docker:dind
-  dependencies:
-    - build
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
+build_doc:
+  stage: build
+  image: gradle:8.14.2-jdk21
   script:
-    - echo $STAGING_DOCKER_PASSWORD | docker login -u $STAGING_DOCKER_USERNAME --password-stdin $STAGING_DOCKER_REGISTRY
-    - docker build -t $STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:test .
-    - docker push $STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:test
+    - gradle javadoc
+  artifacts:
+    paths:
+      - build/docs/javadoc/
+    expire_in: 1 day
+
+assemble_team_staging:
+  stage: assemble
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - echo "{\"auths\":{\"$STAGING_DOCKER_REGISTRY\":{\"username\":\"$STAGING_DOCKER_USERNAME\",\"password\":\"$STAGING_DOCKER_PASSWORD\"}}}" > /kaniko/.docker/config.json
+  script:
+    - |
+      /kaniko/executor \
+        --context "$CI_PROJECT_DIR" \
+        --dockerfile "$CI_PROJECT_DIR/Dockerfile" \
+        --destination "$STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:test"
   only:
     - dev
 
-assemble_production:
+assemble_team_production:
   stage: assemble
-  image: docker:cli
-  services:
-    - docker:dind
-  dependencies:
-    - build
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - echo "{\"auths\":{\"$PRODUCTION_DOCKER_REGISTRY\":{\"username\":\"$PRODUCTION_DOCKER_USERNAME\",\"password\":\"$PRODUCTION_DOCKER_PASSWORD\"}}}" > /kaniko/.docker/config.json
   script:
-    - echo $PRODUCTION_DOCKER_PASSWORD | docker login -u $PRODUCTION_DOCKER_USERNAME --password-stdin $PRODUCTION_DOCKER_REGISTRY
-    - docker build -t $PRODUCTION_DOCKER_REGISTRY/$DOCKER_IMAGE:test .
-    - docker push $PRODUCTION_DOCKER_REGISTRY/$DOCKER_IMAGE:test
+    - |
+      /kaniko/executor \
+        --context "$CI_PROJECT_DIR" \
+        --dockerfile "$CI_PROJECT_DIR/Dockerfile" \
+        --destination "$PRODUCTION_DOCKER_REGISTRY/$DOCKER_IMAGE:test"
   only:
     - main
 
-scan_staging:
+assemble_doc:
+  stage: assemble
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  before_script:
+    - echo "{\"auths\":{\"$STAGING_DOCKER_REGISTRY\":{\"username\":\"$STAGING_DOCKER_USERNAME\",\"password\":\"$STAGING_DOCKER_PASSWORD\"}}}" > /kaniko/.docker/config.json
+  script:
+    - |
+      /kaniko/executor \
+        --context "$CI_PROJECT_DIR" \
+        --dockerfile "$CI_PROJECT_DIR/proxy/Dockerfile" \
+        --destination "$STAGING_DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:test" \
+  only:
+    - dev
+
+scan_container_staging:
   stage: scan
   image:
     name: aquasec/trivy:latest
     entrypoint: [""]
-  dependencies:
-    - assemble_staging
   variables:
-    GIT_STRATEGY: none
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
     TRIVY_USERNAME: $STAGING_DOCKER_USERNAME
     TRIVY_PASSWORD: $STAGING_DOCKER_PASSWORD
   script:
-    - trivy --version
-    - time trivy clean --scan-cache
-    - time trivy image --download-db-only --no-progress --cache-dir .trivycache/
-    - trivy image --ignore-unfixed --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --cache-dir .trivycache/ $STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:test
+    - trivy image --download-db-only --no-progress --cache-dir .trivycache/
+    - trivy image "$STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:test" --ignore-unfixed --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --cache-dir .trivycache/
   cache:
+    key: trivy-cache
     paths:
       - .trivycache/
+  allow_failure: false
   only:
     - dev
 
-scan_production:
+scan_container_production:
   stage: scan
   image:
     name: aquasec/trivy:latest
     entrypoint: [""]
-  dependencies:
-    - assemble_production
   variables:
-    GIT_STRATEGY: none
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
     TRIVY_USERNAME: $PRODUCTION_DOCKER_USERNAME
     TRIVY_PASSWORD: $PRODUCTION_DOCKER_PASSWORD
   script:
-    - trivy --version
-    - time trivy clean --scan-cache
-    - time trivy image --download-db-only --no-progress --cache-dir .trivycache/
-    - trivy image --ignore-unfixed --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --cache-dir .trivycache/ $PRODUCTION_DOCKER_REGISTRY/$DOCKER_IMAGE:test
+    - trivy image --download-db-only --no-progress --cache-dir .trivycache/
+    - trivy image "$PRODUCTION_DOCKER_REGISTRY/$DOCKER_IMAGE:test" --ignore-unfixed --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --cache-dir .trivycache/
   cache:
+    key: trivy-cache
     paths:
       - .trivycache/
+  allow_failure: false
   only:
     - main
 
-publish_staging:
+publish_team_staging:
   stage: publish
-  image: docker:cli
-  services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
-  dependencies:
-    - build
+  image:
+    name: quay.io/skopeo/stable:latest
+    entrypoint: [""]
+  before_script:
+    - skopeo login --username "$STAGING_DOCKER_USERNAME" --password "$STAGING_DOCKER_PASSWORD" $STAGING_DOCKER_REGISTRY
   script:
-    - echo $STAGING_DOCKER_PASSWORD | docker login -u $STAGING_DOCKER_USERNAME --password-stdin $STAGING_DOCKER_REGISTRY
-    - docker pull $STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:test
-    - docker tag $STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:test $STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:latest
-    - docker push $STAGING_DOCKER_REGISTRY/$DOCKER_IMAGE:latest
-    - docker buildx build -t $STAGING_DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:latest -f docs/Dockerfile .
-    - docker push $STAGING_DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:latest
+    - |
+      skopeo copy \
+        docker://${STAGING_DOCKER_REGISTRY}/${DOCKER_IMAGE}:test \
+        docker://${STAGING_DOCKER_REGISTRY}/${DOCKER_IMAGE}:latest
   only:
     - dev
 
-publish_production:
+publish_team_production:
   stage: publish
-  image: docker:cli
-  services:
-    - docker:dind
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
-  dependencies:
-    - build
+  image:
+    name: quay.io/skopeo/stable:latest
+    entrypoint: [""]
+  before_script:
+    - skopeo login --username "$PRODUCTION_DOCKER_USERNAME" --password "$PRODUCTION_DOCKER_PASSWORD" $PRODUCTION_DOCKER_REGISTRY
   script:
-    - echo $PRODUCTION_DOCKER_PASSWORD | docker login -u $PRODUCTION_DOCKER_USERNAME --password-stdin $PRODUCTION_DOCKER_REGISTRY
-    - docker pull $PRODUCTION_DOCKER_REGISTRY/$DOCKER_IMAGE:test
-    - docker tag $PRODUCTION_DOCKER_REGISTRY/$DOCKER_IMAGE:test $PRODUCTION_DOCKER_REGISTRY/$DOCKER_IMAGE:latest
-    - docker push $PRODUCTION_DOCKER_REGISTRY/$DOCKER_IMAGE:latest
-    - docker buildx build -t $PRODUCTION_DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:latest -f docs/Dockerfile .
-    - docker push $PRODUCTION_DOCKER_REGISTRY/$DOCKER_DOCS_IMAGE:latest
+    - |
+      skopeo copy \
+        docker://${PRODUCTION_DOCKER_REGISTRY}/${DOCKER_IMAGE}:test \
+        docker://${PRODUCTION_DOCKER_REGISTRY}/${DOCKER_IMAGE}:latest
   only:
     - main
 
-deploy_staging:
+publish_doc:
+  stage: publish
+  image:
+    name: quay.io/skopeo/stable:latest
+    entrypoint: [""]
+  before_script:
+    - skopeo login --username "$STAGING_DOCKER_USERNAME" --password "$STAGING_DOCKER_PASSWORD" $STAGING_DOCKER_REGISTRY
+  script:
+    - |
+      skopeo copy \
+        docker://${STAGING_DOCKER_REGISTRY}/${DOCKER_DOCS_IMAGE}:test \
+        docker://${STAGING_DOCKER_REGISTRY}/${DOCKER_DOCS_IMAGE}:latest
+  only:
+    - dev
+
+deploy_team_staging:
   stage: deploy
   image:
     name: bitnami/kubectl:latest
     entrypoint: [""]
-  dependencies:
-    - publish_staging
   before_script:
     - mkdir -p ~/.kube
     - echo "$STAGING_KUBERNETES_CONFIGURATION" > ~/.kube/config
@@ -171,13 +201,11 @@ deploy_staging:
   only:
     - dev
 
-deploy_production:
+deploy_team_production:
   stage: deploy
   image:
     name: bitnami/kubectl:latest
     entrypoint: [""]
-  dependencies:
-    - publish_production
   before_script:
     - mkdir -p ~/.kube
     - echo "$PRODUCTION_KUBERNETES_CONFIGURATION" > ~/.kube/config
@@ -200,8 +228,6 @@ validate_staging:
   image:
     name: bitnami/kubectl:latest
     entrypoint: [ "" ]
-  dependencies:
-    - deploy_staging
   before_script:
     - mkdir -p ~/.kube
     - echo "$STAGING_KUBERNETES_CONFIGURATION" > ~/.kube/config
@@ -218,8 +244,6 @@ validate_production:
   image:
     name: bitnami/kubectl:latest
     entrypoint: [ "" ]
-  dependencies:
-    - deploy_production
   before_script:
     - mkdir -p ~/.kube
     - echo "$PRODUCTION_KUBERNETES_CONFIGURATION" > ~/.kube/config
@@ -230,16 +254,3 @@ validate_production:
   only:
     - main
   when: manual
-
-merge:
-  stage: merge
-  image: curlimages/curl:latest
-  script:
-    - |
-      curl --request POST --header "PRIVATE-TOKEN: $DULNO_GITLAB_PRIVATE_TOKEN" \
-      --data "source_branch=dev&target_branch=main&title=Production deployment" \
-      --data "remove_source_branch=false&squash=true" \
-      "$CI_SERVER_URL/api/v4/projects/$CI_PROJECT_ID/merge_requests"
-  only:
-    - dev
-  when: on_success

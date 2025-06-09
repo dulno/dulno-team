@@ -46,7 +46,7 @@ build_geo:
       - geo/
     expire_in: 1 day
 
-build_doc:
+build_docs:
   stage: build
   image: gradle:8.14.2-jdk21
   script:
@@ -61,6 +61,9 @@ assemble_team_staging:
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
+  dependencies:
+    - build_jar
+    - build_geo
   before_script:
     - echo "{\"auths\":{\"$STAGING_DOCKER_REGISTRY\":{\"username\":\"$STAGING_DOCKER_USERNAME\",\"password\":\"$STAGING_DOCKER_PASSWORD\"}}}" > /kaniko/.docker/config.json
   script:
@@ -77,6 +80,9 @@ assemble_team_production:
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
+  dependencies:
+    - build_jar
+    - build_geo
   before_script:
     - echo "{\"auths\":{\"$PRODUCTION_DOCKER_REGISTRY\":{\"username\":\"$PRODUCTION_DOCKER_USERNAME\",\"password\":\"$PRODUCTION_DOCKER_PASSWORD\"}}}" > /kaniko/.docker/config.json
   script:
@@ -88,11 +94,13 @@ assemble_team_production:
   only:
     - main
 
-assemble_doc:
+assemble_docs:
   stage: assemble
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
+  dependencies:
+    - build_docs
   before_script:
     - echo "{\"auths\":{\"$STAGING_DOCKER_REGISTRY\":{\"username\":\"$STAGING_DOCKER_USERNAME\",\"password\":\"$STAGING_DOCKER_PASSWORD\"}}}" > /kaniko/.docker/config.json
   script:
@@ -109,6 +117,7 @@ scan_container_staging:
   image:
     name: aquasec/trivy:latest
     entrypoint: [""]
+  dependencies: []
   variables:
     TRIVY_USERNAME: $STAGING_DOCKER_USERNAME
     TRIVY_PASSWORD: $STAGING_DOCKER_PASSWORD
@@ -128,6 +137,7 @@ scan_container_production:
   image:
     name: aquasec/trivy:latest
     entrypoint: [""]
+  dependencies: []
   variables:
     TRIVY_USERNAME: $PRODUCTION_DOCKER_USERNAME
     TRIVY_PASSWORD: $PRODUCTION_DOCKER_PASSWORD
@@ -147,6 +157,7 @@ publish_team_staging:
   image:
     name: quay.io/skopeo/stable:latest
     entrypoint: [""]
+  dependencies: []
   before_script:
     - skopeo login --username "$STAGING_DOCKER_USERNAME" --password "$STAGING_DOCKER_PASSWORD" $STAGING_DOCKER_REGISTRY
   script:
@@ -162,6 +173,7 @@ publish_team_production:
   image:
     name: quay.io/skopeo/stable:latest
     entrypoint: [""]
+  dependencies: []
   before_script:
     - skopeo login --username "$PRODUCTION_DOCKER_USERNAME" --password "$PRODUCTION_DOCKER_PASSWORD" $PRODUCTION_DOCKER_REGISTRY
   script:
@@ -172,11 +184,12 @@ publish_team_production:
   only:
     - main
 
-publish_doc:
+publish_docs:
   stage: publish
   image:
     name: quay.io/skopeo/stable:latest
     entrypoint: [""]
+  dependencies: []
   before_script:
     - skopeo login --username "$STAGING_DOCKER_USERNAME" --password "$STAGING_DOCKER_PASSWORD" $STAGING_DOCKER_REGISTRY
   script:
@@ -192,6 +205,7 @@ deploy_team_staging:
   image:
     name: bitnami/kubectl:latest
     entrypoint: [""]
+  dependencies: []
   before_script:
     - mkdir -p ~/.kube
     - echo "$STAGING_KUBERNETES_CONFIGURATION" > ~/.kube/config
@@ -206,6 +220,7 @@ deploy_team_production:
   image:
     name: bitnami/kubectl:latest
     entrypoint: [""]
+  dependencies: []
   before_script:
     - mkdir -p ~/.kube
     - echo "$PRODUCTION_KUBERNETES_CONFIGURATION" > ~/.kube/config
@@ -228,6 +243,7 @@ validate_staging:
   image:
     name: bitnami/kubectl:latest
     entrypoint: [ "" ]
+  dependencies: []
   before_script:
     - mkdir -p ~/.kube
     - echo "$STAGING_KUBERNETES_CONFIGURATION" > ~/.kube/config
@@ -244,6 +260,7 @@ validate_production:
   image:
     name: bitnami/kubectl:latest
     entrypoint: [ "" ]
+  dependencies: []
   before_script:
     - mkdir -p ~/.kube
     - echo "$PRODUCTION_KUBERNETES_CONFIGURATION" > ~/.kube/config

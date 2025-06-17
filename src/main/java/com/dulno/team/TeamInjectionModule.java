@@ -87,7 +87,7 @@ public final class TeamInjectionModule extends AbstractModule {
   @Provides
   @Singleton
   Log provideTeamLog() throws Exception {
-    return Log.create("Team", "/logs/");
+    return Log.create("Team");
   }
 
   @Provides

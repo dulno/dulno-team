@@ -1,5 +1,5 @@
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
-import java.net.URL
+import java.net.URI
 import java.util.zip.GZIPInputStream
 
 plugins {
@@ -29,8 +29,8 @@ repositories {
 }
 
 dependencies {
-  testCompileOnly(platform("org.junit:junit-bom:5.12.2"))
-  testCompileOnly("org.junit.jupiter:junit-jupiter:5.12.2")
+  testCompileOnly(platform("org.junit:junit-bom:5.13.1"))
+  testCompileOnly("org.junit.jupiter:junit-jupiter:5.13.1")
 
   implementation("com.dulno:core:1.0.0-SNAPSHOT")
 
@@ -62,7 +62,7 @@ dependencies {
 
   implementation("io.kubernetes:client-java:23.0.0")
 
-  implementation("com.maxmind.geoip2:geoip2:4.3.0")
+  implementation("com.maxmind.geoip2:geoip2:4.3.1")
 
   implementation("com.google.zxing:core:3.5.3")
   implementation("com.google.zxing:javase:3.5.3")
@@ -81,13 +81,14 @@ tasks.register("downloadGeoLite2Database") {
   val databaseUrl = "https://download.maxmind.com/app/geoip_download?" +
     "edition_id=GeoLite2-City&license_key=$licenseKey&suffix=tar.gz"
   val resourcesDir = File("geo")
-  val downloadFile = File(buildDir, "GeoLite2-City.tar.gz")
+  val downloadFile = layout.buildDirectory.file("GeoLite2-City.tar.gz").get().asFile
   doLast {
     resourcesDir.mkdirs()
+    downloadFile.parentFile.mkdirs()
     if (downloadFile.exists()) {
       downloadFile.delete()
     }
-    URL(databaseUrl).openStream().use { input ->
+    URI(databaseUrl).toURL().openStream().use { input ->
       downloadFile.outputStream().use { output ->
         input.copyTo(output)
       }
@@ -100,7 +101,7 @@ tasks.register("downloadGeoLite2Database") {
 fun extract(file: File, destination: File) {
   GZIPInputStream(file.inputStream()).use { gis ->
     TarArchiveInputStream(gis).use { tis ->
-      var entry = tis.nextTarEntry
+      var entry = tis.nextEntry
       while (entry != null) {
         if (!entry.isDirectory && entry.name.endsWith(".mmdb")) {
           val outputFile = File(destination, "GeoLite2-City.mmdb")
@@ -108,7 +109,7 @@ fun extract(file: File, destination: File) {
             tis.copyTo(os)
           }
         }
-        entry = tis.nextTarEntry
+        entry = tis.nextEntry
       }
     }
   }

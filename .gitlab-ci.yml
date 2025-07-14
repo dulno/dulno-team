@@ -22,13 +22,13 @@ include:
 
 test:
   stage: test
-  image: gradle:8.14.2-jdk21
+  image: gradle:8.14.3-jdk21
   script:
     - gradle test
 
 build_jar:
   stage: build
-  image: gradle:8.14.2-jdk21
+  image: gradle:8.14.3-jdk21
   script:
     - gradle bootJar
   artifacts:
@@ -38,7 +38,7 @@ build_jar:
 
 build_geo:
   stage: build
-  image: gradle:8.14.2-jdk21
+  image: gradle:8.14.3-jdk21
   script:
     - gradle downloadGeoLite2Database
   artifacts:
@@ -48,7 +48,7 @@ build_geo:
 
 build_docs:
   stage: build
-  image: gradle:8.14.2-jdk21
+  image: gradle:8.14.3-jdk21
   script:
     - gradle javadoc
   artifacts:

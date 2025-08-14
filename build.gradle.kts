@@ -52,7 +52,7 @@ dependencies {
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.5.4")
 
-  implementation("io.jsonwebtoken:jjwt:0.12.6")
+  implementation("io.jsonwebtoken:jjwt:0.12.7")
 
   implementation("com.sun.mail:javax.mail:1.6.2")
 

@@ -4,7 +4,7 @@ import java.util.zip.GZIPInputStream
 
 plugins {
   id("java")
-  id("io.freefair.lombok") version "8.14"
+  id("io.freefair.lombok") version "8.14.2"
   id("org.springframework.boot") version "3.5.4"
 }
 
@@ -48,11 +48,11 @@ dependencies {
   implementation("org.json:json:20250517")
   implementation("commons-io:commons-io:2.20.0")
 
-  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.9")
+  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.10")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.5.4")
 
-  implementation("io.jsonwebtoken:jjwt:0.12.6")
+  implementation("io.jsonwebtoken:jjwt:0.12.7")
 
   implementation("com.sun.mail:javax.mail:1.6.2")
 

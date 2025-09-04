@@ -38,10 +38,10 @@ dependencies {
 
   implementation("com.google.guava:guava:33.4.8-jre")
 
-  implementation("org.projectlombok:lombok:1.18.38")
-  annotationProcessor("org.projectlombok:lombok:1.18.38")
-  testImplementation("org.projectlombok:lombok:1.18.38")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.38")
+  implementation("org.projectlombok:lombok:1.18.40")
+  annotationProcessor("org.projectlombok:lombok:1.18.40")
+  testImplementation("org.projectlombok:lombok:1.18.40")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.40")
 
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 

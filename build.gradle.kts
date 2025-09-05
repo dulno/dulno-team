@@ -48,7 +48,7 @@ dependencies {
   implementation("org.json:json:20250517")
   implementation("commons-io:commons-io:2.20.0")
 
-  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.10")
+  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.11")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.5.5")
 

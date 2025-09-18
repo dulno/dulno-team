@@ -5,7 +5,7 @@ import java.util.zip.GZIPInputStream
 plugins {
   id("java")
   id("io.freefair.lombok") version "8.14.2"
-  id("org.springframework.boot") version "3.5.5"
+  id("org.springframework.boot") version "3.5.6"
 }
 
 group = "com.dulno"
@@ -36,12 +36,12 @@ dependencies {
 
   implementation("com.google.inject:guice:7.0.0")
 
-  implementation("com.google.guava:guava:33.4.8-jre")
+  implementation("com.google.guava:guava:33.5.0-jre")
 
-  implementation("org.projectlombok:lombok:1.18.40")
-  annotationProcessor("org.projectlombok:lombok:1.18.40")
-  testImplementation("org.projectlombok:lombok:1.18.40")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.40")
+  implementation("org.projectlombok:lombok:1.18.42")
+  annotationProcessor("org.projectlombok:lombok:1.18.42")
+  testImplementation("org.projectlombok:lombok:1.18.42")
+  testAnnotationProcessor("org.projectlombok:lombok:1.18.42")
 
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 
@@ -50,7 +50,8 @@ dependencies {
 
   implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.11")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:3.5.5")
+  implementation("org.springframework.boot:spring-boot-starter-web:3.5.6")
+  implementation("org.springframework:spring-core:6.2.11")
 
   implementation("io.jsonwebtoken:jjwt:0.13.0")
 

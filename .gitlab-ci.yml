@@ -203,7 +203,7 @@ publish_docs:
 deploy_team_staging:
   stage: deploy
   image:
-    name: bitnami/kubectl:latest
+    name: bitnamilegacy/kubectl:latest
     entrypoint: [""]
   dependencies: []
   before_script:
@@ -218,7 +218,7 @@ deploy_team_staging:
 deploy_team_production:
   stage: deploy
   image:
-    name: bitnami/kubectl:latest
+    name: bitnamilegacy/kubectl:latest
     entrypoint: [""]
   dependencies: []
   before_script:
@@ -241,7 +241,7 @@ deploy_wiki:
 validate_staging:
   stage: validate
   image:
-    name: bitnami/kubectl:latest
+    name: bitnamilegacy/kubectl:latest
     entrypoint: [ "" ]
   dependencies: []
   before_script:
@@ -258,7 +258,7 @@ validate_staging:
 validate_production:
   stage: validate
   image:
-    name: bitnami/kubectl:latest
+    name: bitnamilegacy/kubectl:latest
     entrypoint: [ "" ]
   dependencies: []
   before_script:

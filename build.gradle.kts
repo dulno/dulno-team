@@ -51,6 +51,7 @@ dependencies {
   implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.11")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.5.5")
+  implementation("org.springframework:spring-core:6.2.11")
 
   implementation("io.jsonwebtoken:jjwt:0.13.0")
 

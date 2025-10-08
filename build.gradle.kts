@@ -29,8 +29,8 @@ repositories {
 }
 
 dependencies {
-  testCompileOnly(platform("org.junit:junit-bom:5.13.4"))
-  testCompileOnly("org.junit.jupiter:junit-jupiter:5.13.4")
+  testCompileOnly(platform("org.junit:junit-bom:6.0.0"))
+  testCompileOnly("org.junit.jupiter:junit-jupiter:6.0.0")
 
   implementation("com.dulno:core:1.0.0-SNAPSHOT")
 
@@ -48,7 +48,7 @@ dependencies {
   implementation("org.json:json:20250517")
   implementation("commons-io:commons-io:2.20.0")
 
-  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.11")
+  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.12")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.5.6")
   implementation("org.springframework:spring-core:6.2.11")

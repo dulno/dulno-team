@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25-jdk
+FROM eclipse-temurin:25.0.1_8-jdk
 
 COPY /build/libs/team-1.0.0-SNAPSHOT.jar team.jar
 COPY /locale/ /locale/

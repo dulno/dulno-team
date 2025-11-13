@@ -65,7 +65,7 @@ dependencies {
 
   implementation("com.maxmind.geoip2:geoip2:4.4.0")
 
-  implementation("com.google.zxing:core:3.5.3")
+  implementation("com.google.zxing:core:3.5.4")
   implementation("com.google.zxing:javase:3.5.3")
 }
 

@@ -48,10 +48,10 @@ dependencies {
   implementation("org.json:json:20250517")
   implementation("commons-io:commons-io:2.21.0")
 
-  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.13")
+  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.14")
 
   implementation("org.springframework.boot:spring-boot-starter-web:3.5.7")
-  implementation("org.springframework:spring-core:6.2.12")
+  implementation("org.springframework:spring-core:7.0.0")
 
   implementation("io.jsonwebtoken:jjwt:0.13.0")
 
@@ -65,7 +65,7 @@ dependencies {
 
   implementation("com.maxmind.geoip2:geoip2:4.4.0")
 
-  implementation("com.google.zxing:core:3.5.3")
+  implementation("com.google.zxing:core:3.5.4")
   implementation("com.google.zxing:javase:3.5.4")
 }
 

@@ -4,7 +4,7 @@ import java.util.zip.GZIPInputStream
 
 plugins {
   id("java")
-  id("io.freefair.lombok") version "9.0.0"
+  id("io.freefair.lombok") version "9.1.0"
   id("org.springframework.boot") version "4.0.0-M3"
 }
 
@@ -36,9 +36,9 @@ dependencies {
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 
   implementation("org.json:json:20250517")
-  implementation("commons-io:commons-io:2.20.0")
+  implementation("commons-io:commons-io:2.21.0")
 
-  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.13")
+  implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.14")
 
   implementation("org.springframework.boot:spring-boot-starter-web:4.0.0-M3")
   implementation("org.springframework:spring-core:7.0.0")
@@ -55,8 +55,8 @@ dependencies {
 
   implementation("com.maxmind.geoip2:geoip2:4.4.0")
 
-  implementation("com.google.zxing:core:3.5.3")
-  implementation("com.google.zxing:javase:3.5.3")
+  implementation("com.google.zxing:core:3.5.4")
+  implementation("com.google.zxing:javase:3.5.4")
 }
 
 tasks.test {

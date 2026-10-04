@@ -35,7 +35,7 @@ dependencies {
 
   implementation("com.datastax.oss:java-driver-core:4.17.0")
 
-  implementation("org.json:json:20250517")
+  implementation("org.json:json:20260814")
   implementation("commons-io:commons-io:2.21.0")
 
   implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.24")

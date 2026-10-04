@@ -33,3 +33,5 @@ modules
 
 # Geo database
 geo
+# CI checkout of dulno-core
+.core

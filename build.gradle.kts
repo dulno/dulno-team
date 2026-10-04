@@ -15,17 +15,7 @@ java.targetCompatibility = JavaVersion.VERSION_21
 
 repositories {
   mavenCentral()
-  maven {
-    url = uri("https://git.dulno.com/api/v4/projects/51/packages/maven")
-    credentials(HttpHeaderCredentials::class) {
-      name = "Private-Token"
-      value = System.getenv("DULNO_GITLAB_PRIVATE_TOKEN") ?:
-        findProperty("dulnoGitlabPrivateToken") as String?
-    }
-    authentication {
-      create("header", HttpHeaderAuthentication::class)
-    }
-  }
+  mavenLocal()
 }
 
 dependencies {
@@ -78,12 +68,13 @@ tasks.bootJar {
 }
 
 tasks.register("downloadGeoLite2Database") {
-  val licenseKey = "***REMOVED***"
+  val licenseKey = System.getenv("MAXMIND_LICENSE_KEY") ?: findProperty("maxmindLicenseKey") as String?
   val databaseUrl = "https://download.maxmind.com/app/geoip_download?" +
     "edition_id=GeoLite2-City&license_key=$licenseKey&suffix=tar.gz"
   val resourcesDir = File("geo")
   val downloadFile = layout.buildDirectory.file("GeoLite2-City.tar.gz").get().asFile
   doLast {
+    requireNotNull(licenseKey) { "Set MAXMIND_LICENSE_KEY or -PmaxmindLicenseKey" }
     resourcesDir.mkdirs()
     downloadFile.parentFile.mkdirs()
     if (downloadFile.exists()) {

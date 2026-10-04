@@ -11,10 +11,14 @@ All necessary internal team processes are handled in this module. Core functions
 
 |      | Pipeline status                                                      |
 |------|----------------------------------------------------------------------|
-| main | ![](https://git.dulno.com/dulno/dulno-team/badges/main/pipeline.svg) |
-| dev  | ![](https://git.dulno.com/dulno/dulno-team/badges/dev/pipeline.svg)  |
+| main | ![](https://github.com/dulno/dulno-team/actions/workflows/ci.yml/badge.svg?branch=main) |
+| dev  | ![](https://github.com/dulno/dulno-team/actions/workflows/ci.yml/badge.svg?branch=dev)  |
 
 
 ## Permissions
 
-This module has an integrated authorization system. A list and explanation of the various permissions can be found [here](https://git.dulno.com/dulno/dulno-team/-/blob/main/PERMISSIONS.md).
+This module has an integrated authorization system. A list and explanation of the various permissions can be found [here](PERMISSIONS.md).
+
+## License
+
+© Dulno. Licensed under [CC BY-NC-SA 4.0](LICENSE): free for non-commercial use with attribution to Dulno, modifications must be shared under the same license. Third-party code (e.g. under `static/dependency/`) keeps its own license.

@@ -12,7 +12,6 @@ All necessary internal team processes are handled in this module. Core functions
 |      | Pipeline status                                                      |
 |------|----------------------------------------------------------------------|
 | main | ![](https://github.com/dulno/dulno-team/actions/workflows/ci.yml/badge.svg?branch=main) |
-| dev  | ![](https://github.com/dulno/dulno-team/actions/workflows/ci.yml/badge.svg?branch=dev)  |
 
 
 ## Permissions

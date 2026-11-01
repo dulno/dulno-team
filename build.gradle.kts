@@ -5,7 +5,7 @@ import java.util.zip.GZIPInputStream
 plugins {
   id("java")
   id("io.freefair.lombok") version "9.8.2"
-  id("org.springframework.boot") version "4.1.1"
+  id("org.springframework.boot") version "4.1.2"
 }
 
 group = "com.dulno"
@@ -40,7 +40,7 @@ dependencies {
 
   implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.27")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:4.1.1")
+  implementation("org.springframework.boot:spring-boot-starter-web:4.1.2")
   implementation("org.springframework:spring-core:7.0.9")
 
   implementation("io.jsonwebtoken:jjwt:0.13.0")
